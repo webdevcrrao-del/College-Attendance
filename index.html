@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>College Attendance Navigation</title>
+  <style>
+    :root {
+      --ink:#2c3e50;
+      --ink-2:#34495e;
+      --bg:#f5f7fa;
+      --brand:#3498db;
+      --brand-2:#2980b9;
+      --card-bg:#ffffff;
+    }
+
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Segoe UI', system-ui, sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      line-height:1.5;
+    }
+
+    header {
+      background:var(--ink);
+      color:white;
+      padding:20px 24px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      box-shadow:0 2px 6px rgba(0,0,0,.15);
+    }
+    header h1 {
+      margin:0;
+      font-size:1.6rem;
+      font-weight:700;
+      letter-spacing:.5px;
+    }
+
+    main {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+      gap:24px;
+      max-width:1200px;
+      margin:40px auto;
+      padding:0 20px;
+    }
+
+    .container {
+      background:var(--card-bg);
+      padding:32px 24px;
+      border-radius:14px;
+      box-shadow:0 6px 16px rgba(0,0,0,.08);
+      text-align:center;
+      transition:transform .2s ease;
+    }
+    .container:hover {
+      transform:translateY(-3px);
+    }
+
+    h2 {
+      margin-bottom:20px;
+      color:var(--ink-2);
+      font-size:1.25rem;
+      font-weight:600;
+    }
+
+    .btn {
+      display:block;
+      width:100%;
+      margin:10px 0;
+      padding:14px;
+      font-size:1rem;
+      font-weight:600;
+      border:none;
+      border-radius:10px;
+      cursor:pointer;
+      color:white;
+      background:var(--brand);
+      transition:all .25s ease;
+    }
+    .btn:hover {
+      background:var(--brand-2);
+      transform:translateY(-2px);
+    }
+
+    footer {
+      text-align:center;
+      padding:20px;
+      font-size:0.9rem;
+      color:#7f8c8d;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>College Attendance</h1>
+  </header>
+
+  <main>
+    <div class="container">
+      <h2>1st Year</h2>
+      <button class="btn" onclick="window.location.href='1stYear/CSE/index10.html'">CSE</button>
+      <button class="btn" onclick="redirect('cse-ds-1')">CSE DS</button>
+      <button class="btn" onclick="redirect('cse-aiml-1')">CSE AIML</button>
+      <button class="btn" onclick="redirect('cse-am-1')">CSE AM</button>
+    </div>
+
+    <div class="container">
+      <h2>2nd Year</h2>
+      <button class="btn" onclick="redirect('cse-2')">CSE</button>
+      <button class="btn" onclick="redirect('cse-ds-2')">CSE DS</button>
+      <button class="btn" onclick="redirect('cse-aiml-2')">CSE AIML</button>
+      <button class="btn" onclick="redirect('cse-am-2')">CSE AM</button>
+    </div>
+
+    <div class="container">
+      <h2>3rd Year</h2>
+      <button class="btn" onclick="redirect('cse-3')">CSE</button>
+      <button class="btn" onclick="redirect('cse-ds-3')">CSE DS</button>
+      <!-- <button class="btn" onclick="redirect('cse-aiml-3')">CSE AIML</button>
+      <button class="btn" onclick="redirect('cse-am-3')">CSE AM</button> -->
+    </div>
+
+    <div class="container">
+      <h2>4th Year</h2>
+      <button class="btn" onclick="redirect('cse-4')">CSE</button>
+      <button class="btn" onclick="redirect('cse-ds-4')">CSE DS</button>
+      <!-- <button class="btn" onclick="redirect('cse-aiml-4')">CSE AIML</button>
+      <button class="btn" onclick="redirect('cse-am-4')">CSE AM</button> -->
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 College Attendance System
+  </footer>
+
+  <script>
+    function redirect(page){
+      // Example: you can change this mapping to real pages per branch/year
+      window.location.href = page + ".html";
+    }
+  </script>
+</body>
+</html>

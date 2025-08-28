@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Student Attendance Overview</title>
+  <style>
+    :root {
+      --ink:#2c3e50;
+      --ink-2:#34495e;
+      --bg:#f4f6f9;
+      --brand:#3498db;
+      --ok:#27ae60;
+      --warn:#f39c12;
+      --err:#e74c3c;
+    }
+
+    body { 
+      font-family:'Segoe UI',sans-serif; 
+      margin:0; 
+      background:var(--bg); 
+      color:var(--ink);
+    }
+    header { 
+      background:var(--ink); 
+      color:white; 
+      padding:16px 24px; 
+      display:flex; 
+      justify-content:space-between; 
+      align-items:center; 
+      box-shadow:0 2px 8px rgba(0,0,0,0.15);
+    }
+    header h1 { margin:0; font-size:1.45rem; font-weight:600; }
+
+    .btn { 
+      padding:8px 14px; 
+      border:none; 
+      border-radius:8px; 
+      font-weight:600; 
+      cursor:pointer; 
+      transition:all .2s ease;
+      font-size:0.95rem;
+    }
+    .btn:hover { transform:translateY(-1px); }
+    #logout-btn { background:var(--err); color:white; }
+    #logout-btn:hover { background:#c0392b; }
+    #back-btn { background:var(--brand); color:white; margin-right:8px; }
+    #back-btn:hover { background:#2980b9; }
+    #download-csv { background:var(--ok); color:white; margin-top:15px; display:none; }
+    #download-csv:hover { background:#1e874b; }
+
+    .container { 
+      max-width:1200px; 
+      margin:28px auto; 
+      padding:28px; 
+      background:white; 
+      border-radius:14px; 
+      box-shadow:0 6px 16px rgba(0,0,0,.08);
+    }
+
+    /* Filters */
+    .filters {
+      display:flex; 
+      flex-wrap:wrap; 
+      gap:16px; 
+      margin-bottom:24px; 
+      padding:14px; 
+      background:#f9fafb; 
+      border:1px solid #e2e8f0; 
+      border-radius:10px;
+      align-items:flex-end;
+    }
+    .filters label {
+      font-size:0.9rem;
+      font-weight:600;
+      color:#555;
+    }
+    .filters input[type="text"], 
+    .filters input[type="date"] {
+      padding:9px; 
+      border:1px solid #cbd5e0; 
+      border-radius:6px; 
+      font-size:0.95rem;
+    }
+    .filters input[type="text"] { min-width:220px; }
+    .filters button { font-size:0.85rem; padding:8px 12px; }
+
+    /* Student list */
+    h2 { margin:10px 0 12px; }
+    #student-list { 
+      list-style:none; 
+      padding:0; 
+      margin:0; 
+      max-height:260px; 
+      overflow-y:auto; 
+      border:1px solid #e2e8f0; 
+      border-radius:8px;
+    }
+    #student-list li { 
+      padding:12px 14px; 
+      border-bottom:1px solid #edf2f7; 
+      cursor:pointer; 
+      transition:background 0.2s ease, color 0.2s ease;
+    }
+    #student-list li:hover { background:#f1f5f9; color:var(--brand); }
+    #student-list li:last-child { border-bottom:none; }
+    .muted { color:#777; font-style:italic; padding:12px; }
+
+    /* Tables */
+    table { 
+      border-collapse:collapse; 
+      width:100%; 
+      margin-top:20px; 
+      border-radius:10px; 
+      overflow:hidden; 
+      box-shadow:0 2px 6px rgba(0,0,0,.05);
+    }
+    th, td { 
+      border:1px solid #e2e8f0; 
+      padding:12px; 
+      text-align:center; 
+      font-size:0.95rem;
+    }
+    th { background:var(--ink-2); color:white; font-weight:600; }
+    tr:nth-child(even){ background:#f8fafc; }
+    tbody tr:hover td { background:#f1f5f9; }
+
+    .percentage { font-weight:600; }
+    .percentage.good { color:var(--ok); }
+    .percentage.warn { color:var(--warn); }
+    .percentage.bad { color:var(--err); }
+
+    @media(max-width:768px){
+      header { flex-direction:column; gap:10px; align-items:flex-start; }
+      .filters { flex-direction:column; align-items:flex-start; }
+      .filters input, .filters button { width:100%; }
+      table { font-size:0.85rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1> Student Attendance Overview</h1>
+    <div>
+      <button id="back-btn" class="btn">⬅ Back</button>
+      <button id="logout-btn" class="btn">Logout</button>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="filters">
+      <input id="search-box" type="text" placeholder="🔍 Search student...">
+      <div>
+        <label>From<br><input id="start-date" type="date"></label>
+      </div>
+      <div>
+        <label>To<br><input id="end-date" type="date"></label>
+      </div>
+      <button id="sem1-btn" class="btn" style="background:#8e44ad; color:white;">Semester 1</button>
+      <button id="sem2-btn" class="btn" style="background:#d35400; color:white;">Semester 2</button>
+    </div>
+
+    <h2> All Students</h2>
+    <ul id="student-list"><li class="muted">Loading students…</li></ul>
+
+    <div id="student-details" style="display:none;">
+      <h2 id="student-name"></h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Classes Attended</th>
+            <th>Total Classes</th>
+            <th>Average (%)</th>
+          </tr>
+        </thead>
+        <tbody id="attendance-body">
+          <tr><td colspan="4" class="muted">Select a student to view details</td></tr>
+        </tbody>
+      </table>
+      <button id="download-csv" class="btn">⬇ Download CSV</button>
+    </div>
+  </div>
+
+  
+
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+  apiKey: "AIzaSyC6_3eUYW7BaUT0iae08cRgCODOle4bI8Y",
+  authDomain: "styeardsattendance.firebaseapp.com",
+  projectId: "styeardsattendance",
+  storageBucket: "styeardsattendance.firebasestorage.app",
+  messagingSenderId: "1068844406713",
+  appId: "1:1068844406713:web:a7731858db281745cf4868",
+  measurementId: "G-05CCVGNK1R"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const studentList = document.getElementById('student-list');
+    const detailsDiv = document.getElementById('student-details');
+    const studentName = document.getElementById('student-name');
+    const tbody = document.getElementById('attendance-body');
+    const logoutBtn = document.getElementById('logout-btn');
+    const backBtn = document.getElementById('back-btn');
+    const downloadBtn = document.getElementById('download-csv');
+    const startDateEl = document.getElementById('start-date');
+    const endDateEl = document.getElementById('end-date');
+    const sem1Btn = document.getElementById('sem1-btn');
+    const sem2Btn = document.getElementById('sem2-btn');
+
+    let lastReport = null;
+    let currentStudentName = "";
+    let allStudents = [];
+
+    // Semester Date Setter
+    function setSemesterDates(sem) {
+      const year = new Date().getFullYear();
+      if (sem === 1) {
+        startDateEl.value = `${year}-06-30`;
+        endDateEl.value   = `${year}-12-06`;
+      } else {
+        startDateEl.value = `${year}-12-08`;
+        endDateEl.value   = `${year}-06-17`;
+      }
+      
+      if (currentStudentName) {
+        loadStudentAttendance(currentStudentName);
+      }
+    }
+
+    sem1Btn.addEventListener('click', () => setSemesterDates(1));
+    sem2Btn.addEventListener('click', () => setSemesterDates(2));
+
+    // Logout
+    logoutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.href = "index10.html";
+    });
+
+    // Back
+    backBtn.addEventListener('click', () => {
+      window.location.href = "index10.html";
+    });
+
+    // CSV export
+    function generateCSV(report, studentName) {
+      let rows = [["Student","Subject","Classes Attended","Total Classes","Average (%)"]];
+      Object.keys(report).forEach(sub => {
+        const {present, total} = report[sub];
+        const avg = total ? ((present/total)*100).toFixed(1) : 0;
+        rows.push([studentName, sub, present, total, avg + "%"]);
+      });
+      return rows.map(r => r.join(",")).join("\n");
+    }
+
+    downloadBtn.addEventListener('click', () => {
+      if (!lastReport) return;
+      const csvContent = generateCSV(lastReport, currentStudentName);
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${currentStudentName.replace(/\s+/g,'_')}_attendance.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Load students
+    async function loadStudents() {
+      const snap = await getDocs(collection(db, "attendance"));
+      const studentKeys = new Set();
+
+      snap.forEach(doc => {
+        const data = doc.data();
+        if (data.data) {
+          Object.keys(data.data).forEach(key => studentKeys.add(key));
+        }
+      });
+
+      allStudents = [...studentKeys].sort();
+      renderStudentList(allStudents);
+    }
+
+    function renderStudentList(list) {
+      studentList.innerHTML = "";
+      list.forEach(key => {
+        const li = document.createElement("li");
+        li.textContent = key;
+        li.addEventListener("click", () => loadStudentAttendance(key));
+        studentList.appendChild(li);
+      });
+    }
+
+    // Search filter
+    document.getElementById('search-box').addEventListener('input', e => {
+      const term = e.target.value.toLowerCase();
+      const filtered = allStudents.filter(k => k.toLowerCase().includes(term));
+      renderStudentList(filtered);
+    });
+
+    // Attendance loader
+    async function loadStudentAttendance(studentKey) {
+      const snap = await getDocs(collection(db, "attendance"));
+
+      const subjectStats = {};
+      const startDate = startDateEl.value;
+      const endDate = endDateEl.value;
+
+      snap.forEach(doc => {
+        const docId = doc.id; // e.g., "Monday_2025-08-20"
+        const datePart = docId.split("_")[1]; // "2025-08-20"
+
+        if (startDate && datePart < startDate) return;
+        if (endDate && datePart > endDate) return;
+
+        const data = doc.data();
+        if (Array.isArray(data.subjects) && data.data && data.data[studentKey]) {
+          const studentEntry = data.data[studentKey];
+          data.subjects.forEach((sub, i) => {
+            if (!subjectStats[sub]) subjectStats[sub] = { present:0, total:0 };
+            subjectStats[sub].total++;
+            if (studentEntry[i] === true) {
+              subjectStats[sub].present++;
+            }
+          });
+        }
+      });
+
+      currentStudentName = studentKey;
+      studentName.textContent = studentKey;
+      tbody.innerHTML = "";
+      Object.keys(subjectStats).forEach(sub => {
+        const {present, total} = subjectStats[sub];
+        const avg = total ? ((present/total)*100).toFixed(1) : 0;
+        tbody.innerHTML += `
+          <tr>
+            <td>${sub}</td>
+            <td>${present}</td>
+            <td>${total}</td>
+            <td>${avg}%</td>
+          </tr>
+        `;
+      });
+
+      lastReport = subjectStats;
+      downloadBtn.style.display = "inline-block";
+      detailsDiv.style.display = "block";
+    }
+
+    // Auth check
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "index10.html";
+      } else {
+        loadStudents();
+      }
+    });
+  </script>
+</body>
+</html>

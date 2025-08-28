@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Class Records – Teacher View</title>
+  <style>
+    :root {
+      --ink:#1f2937;
+      --ink-2:#374151;
+      --bg:#f9fafb;
+      --brand:#2563eb;
+      --brand-2:#1d4ed8;
+      --ok:#16a34a;
+      --warn:#d97706;
+      --err:#dc2626;
+      --card-bg:#ffffff;
+    }
+
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--ink);
+      line-height:1.5;
+    }
+
+    /* Header */
+    header {
+      background: var(--ink);
+      color: white;
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    }
+    header h1 {
+      margin:0;
+      font-size:1.4rem;
+      font-weight:600;
+      letter-spacing:0.5px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .header-actions {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      font-weight:600;
+      font-size:0.95rem;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background: var(--brand); color:white; }
+    .btn.primary:hover { background: var(--brand-2); }
+    .btn.danger { background: var(--err); color:white; }
+    .btn.danger:hover { background:#b91c1c; }
+    .btn.secondary { background:#e5e7eb; color:var(--ink); }
+    .btn.secondary:hover { background:#d1d5db; }
+
+    /* Main container */
+    .container {
+      max-width: 1200px;
+      margin: 28px auto;
+      background: var(--card-bg);
+      padding: 28px;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0,0,0,.06);
+    }
+    h2 {
+      margin-bottom:16px;
+      font-size:1.2rem;
+      font-weight:600;
+      color: var(--ink-2);
+    }
+
+    /* Filters */
+    .filters {
+      display:flex;
+      flex-wrap:wrap;
+      gap:18px;
+      padding:16px;
+      margin-bottom:22px;
+      background:#f3f4f6;
+      border:1px solid #e5e7eb;
+      border-radius:10px;
+    }
+    label {
+      display:flex;
+      flex-direction:column;
+      font-size:0.9rem;
+      font-weight:600;
+      color:#374151;
+    }
+    input[type="date"], select {
+      margin-top:6px;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size:0.95rem;
+      background:#fff;
+      min-width: 150px;
+    }
+    select[multiple] { min-width:220px; }
+
+    /* Status messages */
+    .msg {
+      margin-top: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-weight:500;
+      display:none;
+      font-size:0.9rem;
+    }
+    .msg.show { display:block; }
+    .msg.info { background:#e0f2fe; color:#075985; }
+    .msg.err { background:#fee2e2; color:#991b1b; }
+    .msg.ok { background:#dcfce7; color:#166534; }
+
+    /* Table */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 18px;
+      border-radius: 8px;
+      overflow:hidden;
+      font-size:0.95rem;
+    }
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 12px;
+      text-align: center;
+    }
+    th {
+      background-color: var(--ink-2);
+      color: white;
+      font-weight:600;
+      font-size:0.95rem;
+    }
+    tr:nth-child(even) { background-color: #f9fafb; }
+    tbody tr:hover td { background-color: #f1f5f9; }
+
+    /* Clickable rows */
+    tbody tr {
+      cursor: pointer;
+      transition: background .2s ease, transform .1s ease;
+    }
+    tbody tr:hover {
+      background-color: #e0f2fe !important;
+      transform: scale(1.005);
+    }
+
+    .muted { color:#6b7280; font-style: italic; }
+    .download-hint {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #1e40af;
+    }
+
+    /* Responsive */
+    @media(max-width:768px){
+      header { flex-direction:column; align-items:flex-start; gap:10px; }
+      .filters { flex-direction:column; }
+      .btn { width:100%; }
+      select[multiple]{ width:100%; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1> Teacher – Class Records</h1>
+  <div class="header-actions">
+    <button id="dashboard-btn" class="btn secondary">⬅ Dashboard</button>
+    <button id="logout-btn" class="btn danger">Logout</button>
+  </div>
+</header>
+
+<div class="container">
+  <h2>Filter Classes</h2>
+  <div class="filters">
+    <label>From
+      <input type="date" id="from-date">
+    </label>
+    <label>To
+      <input type="date" id="to-date">
+    </label>
+    <label>Subjects
+      <select id="subject-filter" multiple size="4"></select>
+    </label>
+
+    <div style="align-self:end; display:flex; gap:8px; flex-wrap:wrap;">
+      <button id="sem1-btn" class="btn secondary">Semester 1</button>
+      <button id="sem2-btn" class="btn secondary">Semester 2</button>
+      <button id="filter-btn" class="btn primary" title="Load classes">Apply Filter</button>
+    </div>
+  </div>
+
+  <div id="status" class="msg info">Initializing…</div>
+  
+  <div class="download-hint">
+     <strong>Tip:</strong> Click any record to download the complete attendance as a CSV file.
+  </div>
+
+  <table id="class-table" aria-label="Filtered classes table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Day</th>
+        <th>Subjects</th>
+        <th>Updated By</th>
+      </tr>
+    </thead>
+    <tbody id="class-body">
+      <tr><td colspan="4" class="muted">Select a date range and click Apply Filter</td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+  apiKey: "AIzaSyC6_3eUYW7BaUT0iae08cRgCODOle4bI8Y",
+  authDomain: "styeardsattendance.firebaseapp.com",
+  projectId: "styeardsattendance",
+  storageBucket: "styeardsattendance.firebasestorage.app",
+  messagingSenderId: "1068844406713",
+  appId: "1:1068844406713:web:a7731858db281745cf4868",
+  measurementId: "G-05CCVGNK1R"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const tbody = document.getElementById('class-body');
+  const statusEl = document.getElementById('status');
+  const filterBtn = document.getElementById('filter-btn');
+  const fromEl = document.getElementById('from-date');
+  const toEl   = document.getElementById('to-date');
+  const subjectFilter = document.getElementById('subject-filter');
+  const logoutBtn = document.getElementById('logout-btn');
+  const dashboardBtn = document.getElementById('dashboard-btn');
+  const sem1Btn = document.getElementById('sem1-btn');
+  const sem2Btn = document.getElementById('sem2-btn');
+
+  function setMsg(text, type='info'){
+    statusEl.textContent = text;
+    statusEl.className = `msg show ${type}`;
+  }
+
+  function ymd(d){
+    const y=d.getFullYear();
+    const m=String(d.getMonth()+1).padStart(2,'0');
+    const day=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+
+  (function setDefaultDates(){
+    const now = new Date();
+    toEl.value = ymd(now);
+    const first = new Date(now.getFullYear(), now.getMonth(), 1);
+    fromEl.value = ymd(first);
+  })();
+
+  function normalizeDate(val){
+    if (!val) return '';
+    if (typeof val === 'string') return val;
+    if (val && typeof val.toDate === 'function') return ymd(val.toDate());
+    return '';
+  }
+
+  function renderRows(docs){
+    if (!docs.length){
+      tbody.innerHTML = '<tr><td colspan="4" class="muted">No records found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = docs.map((d)=>{
+      const dateStr = normalizeDate(d.date);
+      const day = d.day || new Date(dateStr).toLocaleDateString(undefined, { weekday:'long' });
+      const subjects = Array.isArray(d.subjects) ? d.subjects.join(', ') : (d.subjects || '—');
+      const updatedBy = d.updatedBy || 'Unknown';
+      return `<tr data-date="${dateStr}" class="clickable-row">
+        <td>${dateStr || '—'}</td>
+        <td>${day || '—'}</td>
+        <td>${subjects}</td>
+        <td>${updatedBy}</td>
+      </tr>`; 
+    }).join('');
+    
+    // Add click handlers to rows
+    addRowClickHandlers();
+  }
+
+  function addRowClickHandlers() {
+    const clickableRows = tbody.querySelectorAll('.clickable-row');
+    clickableRows.forEach(row => {
+      row.addEventListener('click', async (e) => {
+        const date = row.getAttribute('data-date');
+        if (date && date !== '—') {
+          await downloadAttendanceCSV(date);
+        }
+      });
+    });
+  }
+
+  async function downloadAttendanceCSV(date) {
+    setMsg(`Preparing CSV download for ${date}...`, 'info');
+    
+    try {
+      // Find all possible document IDs for the given date
+      const possibleDocIds = await findDocumentIdForDate(date);
+      
+      let attendanceSnap = null;
+      let foundDocId = null;
+      
+      // Try each possible document ID
+      for (const docId of possibleDocIds) {
+        const attendanceRef = doc(db, 'attendance', docId);
+        const snap = await getDoc(attendanceRef);
+        if (snap.exists()) {
+          attendanceSnap = snap;
+          foundDocId = docId;
+          break;
+        }
+      }
+      
+      if (!attendanceSnap || !attendanceSnap.exists()) {
+        setMsg(`No attendance data found for ${date}. Tried: ${possibleDocIds.join(', ')}`, 'err');
+        return;
+      }
+      
+      const attendanceData = attendanceSnap.data();
+      
+      // Create CSV content
+      let csvContent = 'Roll Number,Student Name';
+      
+      // Add subject headers
+      if (attendanceData.subjects && Array.isArray(attendanceData.subjects)) {
+        attendanceData.subjects.forEach(subject => {
+          csvContent += `,${subject}`;
+        });
+      }
+      csvContent += ',Present Count,Absent Count,Attendance Percentage\n';
+      
+      // Add student data from the 'data' map
+      if (attendanceData.data) {
+        const students = Object.entries(attendanceData.data);
+        
+        students.forEach(([rollNumber, attendanceArray]) => {
+          // The key itself contains "rollNumber - studentName"
+          const nameParts = rollNumber.split(' - ');
+          const actualRollNumber = nameParts[0];
+          const studentName = nameParts.slice(1).join(' - ') || 'Unknown';
+          
+          csvContent += `"${actualRollNumber}","${studentName}"`;
+          
+          let presentCount = 0;
+          let totalSubjects = 0;
+          
+          // Add attendance status for each subject
+          if (attendanceData.subjects && Array.isArray(attendanceData.subjects)) {
+            attendanceData.subjects.forEach((subject, index) => {
+              // attendanceArray should be an array of booleans
+              const attendanceValue = Array.isArray(attendanceArray) && 
+                                    attendanceArray[index] !== undefined ? 
+                                    attendanceArray[index] : null;
+              
+              let status = 'Not Marked';
+              if (attendanceValue === true) {
+                status = 'Present';
+                presentCount++;
+                totalSubjects++;
+              } else if (attendanceValue === false) {
+                status = 'Absent';
+                totalSubjects++;
+              }
+              
+              csvContent += `,"${status}"`;
+            });
+          }
+          
+          // Calculate attendance percentage
+          const percentage = totalSubjects > 0 ? ((presentCount / totalSubjects) * 100).toFixed(1) : 0;
+          
+          csvContent += `,"${presentCount}","${totalSubjects - presentCount}","${percentage}%"\n`;
+        });
+      }
+      
+      // Add metadata at the end
+      csvContent += '\n--- Metadata ---\n';
+      csvContent += `Document ID,"${foundDocId}"\n`;
+      csvContent += `Date,"${attendanceData.date || date}"\n`;
+      csvContent += `Day,"${attendanceData.day || 'N/A'}"\n`;
+      csvContent += `Updated By,"${attendanceData.updatedBy || 'N/A'}"\n`;
+      csvContent += `Last Updated,"${attendanceData.updatedAt ? new Date(attendanceData.updatedAt).toLocaleString() : 'N/A'}"\n`;
+      csvContent += `Total Students,"${attendanceData.data ? Object.keys(attendanceData.data).length : 0}"\n`;
+      csvContent += `Subjects,"${attendanceData.subjects ? attendanceData.subjects.join(', ') : 'N/A'}"\n`;
+      
+      // Create and download the file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `attendance_${date}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      const studentCount = attendanceData.data ? Object.keys(attendanceData.data).length : 0;
+      setMsg(`✅ Downloaded attendance for ${date} (${studentCount} students) - Document: ${foundDocId}`, 'ok');
+      
+    } catch (error) {
+      console.error('Error downloading attendance CSV:', error);
+      if (error.code === 'permission-denied') {
+        setMsg('Permission denied. You need teacher access to download attendance data.', 'err');
+      } else {
+        setMsg(`Error downloading CSV: ${error.message}`, 'err');
+      }
+    }
+  }
+  
+  // Helper function to generate possible document IDs for a date
+  async function findDocumentIdForDate(date) {
+    const docDate = new Date(date + 'T00:00:00'); // Ensure proper date parsing
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayName = dayNames[docDate.getDay()];
+    
+    // Also try to get all possible documents from the collection to see what exists
+    const possibleIds = [
+      `${dayName}_${date}`, // Calculated day name
+      date, // Just the date
+      date.replace(/-/g, '_'), // Date with underscores
+      `${dayName}_${date.replace(/-/g, '_')}`, // Day with underscores
+    ];
+    
+    // Add all possible day names just in case there's a miscalculation
+    dayNames.forEach(day => {
+      possibleIds.push(`${day}_${date}`);
+    });
+    
+    // Remove duplicates
+    return [...new Set(possibleIds)];
+  }
+
+  async function fetchBetweenDates(fromStr, toStr){
+    const col = collection(db, 'attendance');
+    try{
+      const q = query(col, where('date', '>=', fromStr), where('date', '<=', toStr), orderBy('date'));
+      const snap = await getDocs(q);
+      return snap.docs.map(d=>d.data());
+    }catch(err){
+      if (err && (err.code === 'failed-precondition' || err.code === 'invalid-argument')){
+        const snap = await getDocs(col);
+        return snap.docs.map(d=>d.data()).filter(row=>{
+          const ds = normalizeDate(row.date);
+          return ds && ds >= fromStr && ds <= toStr;
+        });
+      }
+      throw err;
+    }
+  }
+
+  async function runFilter(){
+    const from = fromEl.value; const to = toEl.value;
+    if (!from || !to){ setMsg('Please select both From and To dates.', 'err'); return; }
+    tbody.innerHTML = '<tr><td colspan="4" class="muted">Loading…</td></tr>';
+
+    try{
+      let rows = await fetchBetweenDates(from, to);
+      const selectedSubjects = Array.from(subjectFilter.selectedOptions).map(opt=>opt.value);
+      if (selectedSubjects.length){
+        rows = rows.filter(r => Array.isArray(r.subjects) && selectedSubjects.every(s => r.subjects.includes(s)));
+      }
+      renderRows(rows);
+      setMsg(`Loaded ${rows.length} record(s). Click any row to download CSV.`, 'ok');
+      populateSubjectOptions(rows);
+    }catch(err){
+      if (err && err.code === 'permission-denied'){
+        setMsg('Permission denied. Requires teacher role.', 'err');
+      } else {
+        setMsg(`Error: ${err?.message || err}`, 'err');
+      }
+      if (tbody.innerText.includes('Loading')){
+        tbody.innerHTML = '<tr><td colspan="4" class="muted">No data due to error</td></tr>';
+      }
+    }
+  }
+
+  function populateSubjectOptions(rows){
+    const subjects = new Set();
+    rows.forEach(r => {
+      if (Array.isArray(r.subjects)){
+        r.subjects.forEach(s => subjects.add(s));
+      }
+    });
+    const current = Array.from(subjectFilter.selectedOptions).map(o=>o.value);
+    subjectFilter.innerHTML = '';
+    [...subjects].sort().forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      if (current.includes(s)) opt.selected = true;
+      subjectFilter.appendChild(opt);
+    });
+  }
+
+  filterBtn.addEventListener('click', runFilter);
+
+  // Semester buttons
+  function setSemesterDates(sem){
+    const year = new Date().getFullYear();
+    if(sem === 1){
+      fromEl.value = `${year}-06-30`;
+      toEl.value   = `${year}-12-06`;
+    } else if(sem === 2){
+      fromEl.value = `${year}-12-08`;
+      toEl.value   = `${year}-06-17`;
+    }
+  }
+  sem1Btn.addEventListener('click', ()=>{ setSemesterDates(1); runFilter(); });
+  sem2Btn.addEventListener('click', ()=>{ setSemesterDates(2); runFilter(); });
+
+  logoutBtn.addEventListener('click', async ()=>{
+    try {
+      await signOut(auth);
+      window.location.href = "index10.html";
+    } catch (e) {
+      setMsg(`Logout failed: ${e.message}`, 'err');
+    }
+  });
+
+  dashboardBtn.addEventListener('click', ()=>{
+    window.location.href = "index10.html";
+  });
+
+  onAuthStateChanged(auth, (user)=>{
+    if (!user){
+      window.location.href = "index10.html";
+      return;
+    }
+    setMsg(`Signed in as ${user.email || user.uid}. You can filter now.`, 'ok');
+  });
+</script>
+</body>
+</html>
