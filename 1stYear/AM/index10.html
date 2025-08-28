@@ -291,14 +291,14 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyCTx8SuwqsqqVzgsfPkaaMEirYeKWCqC5Y",
-    authDomain: "attendance-dd096.firebaseapp.com",
-    projectId: "attendance-dd096",
-    storageBucket: "attendance-dd096.firebasestorage.app",
-    messagingSenderId: "1064169386680",
-    appId: "1:1064169386680:web:301de8d261c27216aeba4d",
-    measurementId: "G-6XS9BM0852"
-  };
+  apiKey: "AIzaSyCRFMKHulz5a1cmRMvrKMHEmjQH-Sdw1LU",
+  authDomain: "styearamattendance.firebaseapp.com",
+  projectId: "styearamattendance",
+  storageBucket: "styearamattendance.firebasestorage.app",
+  messagingSenderId: "841544576901",
+  appId: "1:841544576901:web:0579e5f03f59d2ce011eec",
+  measurementId: "G-F27T3JXJYN"
+};
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
@@ -320,75 +320,30 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
    * Data
    *************************************/
   const students = [
-    "R23XV1M6701 - Addanki Harshitha",
-    "R23XV1M6702 - Agalduvity Rohit",
-    "R23XV1M6703 - Ananthula Akhil Kumar",
-    "R23XV1M6704 - Arudra Thrived Sai",
-    "R23XV1M6705 - Asmita Samayam",
-    "R23XV1M6706 - Bolladi Yashwanth Reddy",
-    "R23XV1M6707 - Chanda Pranav",
-    "R23XV1M6708 - Chiguru Varun",
-    "R23XV1M6709 - Duddu Harshavardhan",
-    "R23XV1M6710 - Gadde Yaksha",
-    "R23XV1M6711 - Gannavarapu Sai Jaiwanth",
-    "R23XV1M6712 - Gopagani Prabhas Aryan",
-    "R23XV1M6713 - Gorijavolu Ramphani Prasad",
-    "R23XV1M6714 - GVS Lalitha Siva Priya",
-    "R23XV1M6715 - Jerripotula Dharan Premjee",
-    "R23XV1M6716 - Kadiri Hitesh Reddy",
-    "R23XV1M6717 - Kandagaddala Lakshmi Venkateswarachaitanya",
-    "R23XV1M6718 - Kandagaddala Lakshmi Vyshnavi",
-    "R23XV1M6719 - Katta Yogith Reddy",
-    "R23XV1M6720 - Kotha Venkata Sourav Sohil",
-    "R23XV1M6721 - Krapa Harsha Vardhan",
-    "R23XV1M6722 - Kuntla Sri Sahithi",
-    "R23XV1M6723 - Lalithadithya Reddy Chintalapudi",
-    "R23XV1M6724 - Manaswini Koratagiri",
-    "R23XV1M6725 - Manikanti Gayatri Reddy",
-    "R23XV1M6726 - Maranani Dinesh Kumar",
-    "R23XV1M6727 - Mohammed Nahid Hasan",
-    "R23XV1M6728 - Mothe Venkatnath Reddy",
-    "R23XV1M6729 - Moturu Sai Gagana Laasya",
-    "R23XV1M6730 - Muppidi Saika Brinda",
-    "R23XV1M6731 - Pasumarthi Vaibhav",
-    "R23XV1M6732 - Rishika Cherupelly",
-    "R23XV1M6733 - Rohan Sreeharsha Srikakulam",
-    "R23XV1M6734 - Saathvik Varma Mandapati",
-    "R23XV1M6735 - Shaik Taufeeq Ahmad",
-    "R23XV1M6736 - Shrihari Bhide",
-    "R23XV1M6737 - Sonti Krishna Keerthana",
-    "R23XV1M6738 - Sowmya Adluri",
-    "R23XV1M6739 - Sresta Bhupathi",
-    "R23XV1M6740 - Supraja Ananthula",
-    "R23XV1M6741 - T Shashidhar Yadav",
-    "R23XV1M6742 - Talabhattula Dheeraj Krishna",
-    "R23XV1M6743 - Tanmay Gunnam",
-    "R23XV1M6744 - Tata Sucheth",
-    "R23XV1M6745 - Tera Daiva Prem",
-    "R23XV1M6746 - Tumma Nikhil Kumar",
-    "R23XV1M6747 - V Arun Raj Goud",
-    "R23XV1M6748 - Valluri Vamshi Krishna Bharadwaj",
-    "R23XV1M6749 - Vuddanti Hima Varenya",
-    "R23XV1M6750 - Yamini Lokesh",
-    "NR23XV1M6751 - Sangeetam Abhishek Naidu",
-    "NR23XV1M6752 - Chopperla Sailakshmi Harini",
-    "NR23XV1M6753 - Surapureddy Rahul",
-    "NR23XV1M6754 - K Venkata Pallavi",
-    "NR23XV1M6755 - Bolisetty Subbarayudu",
-    "NR23XV1M6756 - Chunduru Sasank Vardhan",
-    "NR23XV1M6757 - Karra Lakshmi Abhinav Sivesh",
-    "NR23XV1M6758 - Sibani Tiwari",
-    "NR23XV1M6759 - Venumuddala Rishi",
-    "NR23XV1M6760 - Venkatesh Tadepalli"
+   "BT25AM02 - SEETHALA SAI TASHVI",
+"BT25AM04 - TADIKONDA YUVA TEJAS",
+"BT25AM05 - DASARI JAGADEEP",
+"BT25AM06 - SATYANARAYANA NIDHI",
+"BT25AM07 - CHERUKURI AKSHAY VARMA",
+"BT25AM08 - VUNNAM SAKETH NANDAN",
+"BT25AM09 - BALAGANI SHANMUKH",
+"BT25AM10 - MAHAKALA AKSHAYA",
+"BT25AM11 - SINGIREDDY SARASIJ REDDY",
+"BT25AM12 - MOOLA MUKESH REDDY",
+"BT25AM13 - AMSHITHA KUKKADAPU",
+"BTC5AM14 - KANDIMALLA MANI DEEP REDDY",
+"BT25AM15 - PAKTUR TEJAS CHANDRA SINGH",
+"BT25AM16 - T V SAI ANANDITA",
+
   ];
 
   const subjectsByDay = {
-    'Monday': ['AI', 'ADA', 'CN-Lab', 'SMD'],
-    'Tuesday': ['IDA', 'AI', 'ADA', 'ACS-Lab'],
-    'Wednesday': ['IDA', 'Assignment', 'CN', 'SMD', 'KOFKA'],
-    'Thursday': ['IDA', 'R-Lab', 'CN', 'IPR'],
-    'Friday': ['AI', 'CN-Lab Assignment', 'IDA', 'Hackathon'],
-    'Saturday': ['Aptitude Class']
+    'Monday': ['M&C', 'English Theory', 'PPS Theory', 'EDC','Sports/Library'],
+    'Tuesday': ['M&C', 'EC', 'English Theory', 'English-Lab'],
+    'Wednesday': ['M&C', 'EC', 'Engineering Workshop', 'IPR'],
+    'Thursday': ['DA-Lab','PPS-Lab'],
+    'Friday': ['M&C', 'PPS Theory','EDC','EDC/M&C Assignments'],
+    'Saturday': ['']
   };
 
   /*************************************
