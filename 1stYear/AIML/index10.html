@@ -152,9 +152,9 @@
       <label style="min-width:280px">Email:<br/><input type="text" id="username" placeholder="Enter email" autocomplete="username" /></label>
       <label style="min-width:280px">Password:<br/><input type="password" id="password" placeholder="Enter password" autocomplete="current-password" /></label>
     </div>
-      <div class="row">
+      <!-- <div class="row">
       <div class="g-recaptcha" data-sitekey="6Lf3HqYrAAAAAAMj597dHly9qhUC5LF-BKdemUnN"></div>
-    </div>  
+    </div>   -->
     <div class="row">
       <button id="login-btn">Login</button>
       <button id="forgot-btn" class="muted">Forgot password</button>
@@ -271,7 +271,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-MnQnQf9O9Vf6xNmKxN0h7Qb0sN7c5F6aFqbKp1q5mHcK2lYt8nqf3zZbX2p8n2l0J3O7yZQ0Nw7Qx9mDxQ8Zig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <!-- Google reCAPTCHA -->
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>  
+  <!-- <script src="https://www.google.com/recaptcha/api.js" async defer></script>   -->
 
 <script type="module">
 
@@ -730,11 +730,11 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   loginBtn.addEventListener('click', async () => {
     const email = (document.getElementById('username').value || '').trim();
     const pass = (document.getElementById('password').value || '').trim();
-      const captchaResponse = grecaptcha.getResponse();
-      if (!captchaResponse) {
-       loginFeedback.innerHTML = `<div class="error">Please complete the CAPTCHA.</div>`;
-        return;
-      }
+      // const captchaResponse = grecaptcha.getResponse();
+      // if (!captchaResponse) {
+      //  loginFeedback.innerHTML = `<div class="error">Please complete the CAPTCHA.</div>`;
+      //   return;
+      // }
     if (!email || !pass) {
       loginTroubleshoot.style.display = '';
       loginFeedback.innerHTML = `<div class="error">Please enter both email and password.</div>`;
