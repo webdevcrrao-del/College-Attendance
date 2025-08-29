@@ -794,15 +794,12 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
 subjects.forEach((sub, idx) => {
   headerHTML += `<th class="subject-header">
     ${sub}
-    ${currentRole === 'teacher' ? `
-      <button class="select-all-btn" 
-              onclick="toggleSelectAll(${idx})" 
-              data-subject-index="${idx}" 
-              title="Select all students for ${sub}">
-        ✓
-      </button>` : ''}
+    ${currentRole === 'teacher' ? 
+      /* `<button class="select-all-btn" onclick="toggleSelectAll(${idx})" data-subject-index="${idx}" title="Select all students for ${sub}">✓</button>` */ 
+      '' : ''}
   </th>`;
 });
+
 tableHeader.innerHTML = headerHTML;
 
 
