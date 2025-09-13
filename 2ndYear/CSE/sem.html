@@ -489,25 +489,11 @@
 
     try{
       let rows = await fetchBetweenDates(from, to);
-
-// Filter subjects if user selected some
-const selectedSubjects = Array.from(subjectFilter.selectedOptions).map(opt=>opt.value);
-if (selectedSubjects.length){
-  rows = rows.filter(r => Array.isArray(r.subjects) && selectedSubjects.every(s => r.subjects.includes(s)));
-}
-
-// ✅ Keep only rows (classes) where at least one subject has at least one "true"
-rows = rows.filter(r => {
-  if (!r.data || !Array.isArray(r.subjects)) return false;
-
-  // For each subject, check if ANY student was marked present
-  return r.subjects.some((sub, i) => {
-    return Object.values(r.data).some(studentArr => Array.isArray(studentArr) && studentArr[i] === true);
-  });
-});
-
-renderRows(rows);
-
+      const selectedSubjects = Array.from(subjectFilter.selectedOptions).map(opt=>opt.value);
+      if (selectedSubjects.length){
+        rows = rows.filter(r => Array.isArray(r.subjects) && selectedSubjects.every(s => r.subjects.includes(s)));
+      }
+      renderRows(rows);
       setMsg(`Loaded ${rows.length} record(s). Click any row to download CSV.`, 'ok');
       populateSubjectOptions(rows);
     }catch(err){

@@ -223,10 +223,8 @@
         <button id="end-qr-btn" class="danger-btn" style="display:none;">End Session</button> -->
       </div>
       <div id="add-class-section" class="row">
-  <input type="text" id="new-class-name" placeholder="Enter new class/subject">
-  <button id="add-class-btn">Add Class</button>
-  <button id="remove-class-btn" class="danger-btn">Remove Selected Subject</button>
-
+      <input type="text" id="new-class-name" placeholder="Enter new class/subject">
+      <button id="add-class-btn">Add Class</button>
       <div id="teacher-buttons" class="row">
       <button id="save-btn">Save Attendance</button>
       <button id="export-btn">Export as CSV</button>
@@ -467,72 +465,63 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
     const docId = `${day}_${date}`;
     currentAttendanceDoc = docId;
     
-    // In the auto-update section, replace the existing onSnapshot code with this:
-try {
-  currentDocListener = onSnapshot(
-    doc(db, 'attendance', docId),
-    (docSnapshot) => {
-      if (!autoUpdateEnabled) return;
-      
-      updateStatusIndicator('updating', '🔄 Updating...');
-      
-      if (docSnapshot.exists()) {
-        const newData = docSnapshot.data();
-        
-        // Ensure the data structure matches our expected format
-        if (newData.data) {
-          const processedData = {};
-          for (const [student, attendance] of Object.entries(newData.data)) {
-            if (Array.isArray(attendance)) {
-              processedData[student] = attendance;
-            } else {
-              // Convert non-array data to array format
-              processedData[student] = new Array((newData.subjects || []).length).fill(false);
+    try {
+      currentDocListener = onSnapshot(
+        doc(db, 'attendance', docId),
+        (docSnapshot) => {
+          if (!autoUpdateEnabled) return;
+          
+          updateStatusIndicator('updating', '🔄 Updating...');
+          
+          if (docSnapshot.exists()) {
+            const newData = docSnapshot.data();
+            const hasChanges = !lastKnownData || JSON.stringify(lastKnownData) !== JSON.stringify(newData);
+            
+            if (hasChanges) {
+              lastKnownData = { ...newData };
+              
+              // Update the table with visual feedback
+              updateTableWithChanges(newData);
+              
+              // Update last modified info
+              const lastUpdated = newData.updatedAt ? new Date(newData.updatedAt).toLocaleString() : 'Unknown';
+              lastUpdatedInfo.textContent = `Last updated: ${lastUpdated}`;
+              
+              // Add pulse animation to table
+              const table = $('attendance-table');
+              table.classList.add('pulse-animation');
+              setTimeout(() => table.classList.remove('pulse-animation'), 500);
             }
+          } else {
+            // Document doesn't exist, show empty table
+            const subjects = subjectsByDay[day] || [];
+            buildTable(subjects);
+            lastUpdatedInfo.textContent = 'No data saved yet';
           }
-          updateTableWithChanges({...newData, data: processedData});
-        } else {
-          updateTableWithChanges(newData);
+          
+          // Update status back to connected after a delay
+          setTimeout(() => {
+            if (autoUpdateEnabled) {
+              updateStatusIndicator('connected', '🟢 Live Updates Active');
+            }
+          }, 1000);
+        },
+        (error) => {
+          console.error('Auto-update listener error:', error);
+          updateStatusIndicator('error', '🔴 Connection Error');
+          
+          // Try to reconnect after 5 seconds
+          setTimeout(() => {
+            if (autoUpdateEnabled) {
+              startAutoUpdate();
+            }
+          }, 5000);
         }
-        
-        // Update last modified info
-        const lastUpdated = newData.updatedAt ? new Date(newData.updatedAt).toLocaleString() : 'Unknown';
-        lastUpdatedInfo.textContent = `Last updated: ${lastUpdated}`;
-        
-        // Add pulse animation to table
-        const table = $('attendance-table');
-        table.classList.add('pulse-animation');
-        setTimeout(() => table.classList.remove('pulse-animation'), 500);
-      } else {
-        // Document doesn't exist, show empty table
-        const subjects = subjectsByDay[day] || [];
-        buildTable(subjects);
-        lastUpdatedInfo.textContent = 'No data saved yet';
-      }
-      
-      // Update status back to connected after a delay
-      setTimeout(() => {
-        if (autoUpdateEnabled) {
-          updateStatusIndicator('connected', '🟢 Live Updates Active');
-        }
-      }, 1000);
-    },
-    (error) => {
-      console.error('Auto-update listener error:', error);
-      updateStatusIndicator('error', '🔴 Connection Error');
-      
-      // Try to reconnect after 5 seconds
-      setTimeout(() => {
-        if (autoUpdateEnabled) {
-          startAutoUpdate();
-        }
-      }, 5000);
+      );
+    } catch (error) {
+      console.error('Failed to start auto-update:', error);
+      updateStatusIndicator('error', '🔴 Failed to Start Updates');
     }
-  );
-} catch (error) {
-  console.error('Failed to start auto-update:', error);
-  updateStatusIndicator('error', '🔴 Failed to Start Updates');
-}
   }
 
   function stopAutoUpdate() {
@@ -542,35 +531,51 @@ try {
     }
   }
 
-function updateTableWithChanges(newData) {
-  const subjectIndex = parseInt(subjectSelect.value, 10);
-  const selectedSubject = (subjectsByDay[daySelect.value] || [])[subjectIndex];
-  if (!selectedSubject) return;
-
-  // Update checkboxes based on new data
-  document.querySelectorAll('#attendance-body tr').forEach(row => {
-    const student = row.cells[0].textContent;
-    const checkbox = row.cells[1].querySelector('input[type="checkbox"]');
+  function updateTableWithChanges(newData) {
+    const subjects = Array.isArray(newData.subjects) && newData.subjects.length ? 
+                    newData.subjects : subjectsByDay[daySelect.value] || [];
     
-    if (newData.data && newData.data[student] && Array.isArray(newData.data[student])) {
-      // Ensure the array has enough elements
-      if (subjectIndex < newData.data[student].length) {
-        checkbox.checked = newData.data[student][subjectIndex] || false;
-      } else {
-        checkbox.checked = false;
+    // Store current checkbox states to detect changes
+    const currentStates = {};
+    document.querySelectorAll('#attendance-body tr').forEach(row => {
+      const student = row.cells[0].textContent;
+      currentStates[student] = [];
+      for (let i = 1; i < row.cells.length; i++) {
+        const checkbox = row.cells[i].firstChild;
+        if (checkbox && checkbox.type === 'checkbox') {
+          currentStates[student].push(checkbox.checked);
+        }
       }
+    });
+    
+    // Rebuild table
+    buildTable(subjects, newData.data);
+    
+    // Highlight changed cells
+    document.querySelectorAll('#attendance-body tr').forEach(row => {
+      const student = row.cells[0].textContent;
+      const oldStates = currentStates[student] || [];
       
-      // Add visual feedback for updated cells
-      const cell = checkbox.parentElement;
-      cell.classList.add('updated-cell');
-      setTimeout(() => cell.classList.remove('updated-cell'), 2000);
-    }
-  });
-}
-
-
-
-
+      for (let i = 1; i < row.cells.length; i++) {
+        const checkbox = row.cells[i].firstChild;
+        if (checkbox && checkbox.type === 'checkbox') {
+          const oldState = oldStates[i - 1];
+          const newState = checkbox.checked;
+          
+          // If state changed, highlight the cell
+          if (oldState !== undefined && oldState !== newState) {
+            const cell = row.cells[i];
+            cell.classList.add('updated-cell');
+            
+            // Remove highlight after 3 seconds
+            setTimeout(() => {
+              cell.classList.remove('updated-cell');
+            }, 3000);
+          }
+        }
+      }
+    });
+  }
 
   // Start auto-update when day/date changes
   daySelect.addEventListener('change', () => { 
@@ -778,45 +783,6 @@ function updateTableWithChanges(newData) {
    * Attendance table with Select All functionality
    *************************************/
   addClassBtn.addEventListener('click', addClass);
-  const removeClassBtn = document.getElementById('remove-class-btn');
-removeClassBtn.addEventListener('click', removeClass);
-
-function removeClass() {
-  if (currentRole === 'viewer') return;
-
-  const day = daySelect.value;
-  const subjectIndex = parseInt(subjectSelect.value, 10);
-  const subjects = subjectsByDay[day];
-
-  if (isNaN(subjectIndex) || subjectIndex < 0 || subjectIndex >= subjects.length) {
-    alert('Please select a subject to remove');
-    return;
-  }
-
-  const subjectName = subjects[subjectIndex];
-  if (!confirm(`Are you sure you want to remove "${subjectName}" from ${day}?`)) {
-    return;
-  }
-
-  // Remove subject from timetable
-  subjects.splice(subjectIndex, 1);
-
-  // Rebuild table with existing attendance data (without this subject)
-  const existingData = {};
-  document.querySelectorAll('#attendance-body tr').forEach(row => {
-    const student = row.cells[0].textContent;
-    existingData[student] = [];
-    for (let i = 1; i < row.cells.length; i++) {
-      existingData[student].push(row.cells[i].firstChild.checked);
-    }
-  });
-
-  buildTable(subjects, existingData);
-  populateSubjectSelect();
-
-  alert(`Subject "${subjectName}" removed successfully`);
-}
-
   saveBtn.addEventListener('click', saveAttendance);
   exportBtn.addEventListener('click', exportCSV);
 
@@ -841,49 +807,43 @@ function removeClass() {
     });
   }
 
-function buildTable(subjects, existingData = {}) {
-  // Clear existing content
-  tableHeader.innerHTML = '';
-  tbody.innerHTML = '';
+  function buildTable(subjects, existingData = {}) {
+    // Clear existing content
+    tableHeader.innerHTML = '';
+    tbody.innerHTML = '';
 
-  // Get selected subject
-  const subjectIndex = parseInt(subjectSelect.value, 10);
-  const subjectName = subjects[subjectIndex];
-  if (!subjectName) return;
+    // Build header row
+   let headerHTML = '<th>Students</th>';
+subjects.forEach((sub, idx) => {
+  headerHTML += `<th class="subject-header">
+    ${sub}
+    ${currentRole === 'teacher' ? 
+      /* `<button class="select-all-btn" onclick="toggleSelectAll(${idx})" data-subject-index="${idx}" title="Select all students for ${sub}">✓</button>` */ 
+      '' : ''}
+  </th>`;
+});
 
-  // Build header (only selected subject)
-  let headerHTML = '<th>Students</th>';
-  headerHTML += `<th class="subject-header">${subjectName}</th>`;
-  tableHeader.innerHTML = headerHTML;
+tableHeader.innerHTML = headerHTML;
 
-  // Build body rows
-  students.forEach(student => {
-    const row = document.createElement('tr');
-    
-    // Get attendance status for this specific subject
-    let isPresent = false;
-    if (existingData[student] && Array.isArray(existingData[student])) {
-      // Ensure the array has enough elements
-      if (subjectIndex < existingData[student].length) {
-        isPresent = existingData[student][subjectIndex];
-      }
+
+    // Build body rows
+    students.forEach(student => {
+      const row = document.createElement('tr');
+      let rowHTML = `<td>${student}</td>`;
+      subjects.forEach((_, idx) => {
+        const checked = existingData[student]?.[idx] ? 'checked' : '';
+        const disabled = currentRole === 'viewer' ? 'disabled' : '';
+        rowHTML += `<td><input type="checkbox" ${checked} ${disabled} data-subject-index="${idx}"></td>`;
+      });
+      row.innerHTML = rowHTML;
+      tbody.appendChild(row);
+    });
+
+    // Update select all button states
+    if (currentRole === 'teacher') {
+      updateSelectAllButtons();
     }
-    
-    const disabled = currentRole === 'viewer' ? 'disabled' : '';
-    row.innerHTML = `
-      <td>${student}</td>
-      <td><input type="checkbox" ${isPresent ? 'checked' : ''} ${disabled} 
-           data-student="${student}" data-subject-index="${subjectIndex}"></td>
-    `;
-    tbody.appendChild(row);
-  });
-}
-
-
-
-
-
-
+  }
 
   // Global function for select all buttons (needs to be accessible from onclick)
   window.toggleSelectAll = function(subjectIndex) {
@@ -930,142 +890,47 @@ function buildTable(subjects, existingData = {}) {
       updateSelectAllButtons();
     }
   });
-// 1. Update the subjectSelect event listener to rebuild the table with current data
-subjectSelect.addEventListener('change', () => {
-  const day = daySelect.value;
-  const date = dateSelect.value;
-  if (!day || !date) return;
-  
-  const docId = `${day}_${date}`;
-  
-  // Fetch data from Firestore
-  getDoc(doc(db, 'attendance', docId)).then(docSnap => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      const subjects = subjectsByDay[day] || [];
-      buildTable(subjects, data.data || {});
-    } else {
-      // No data exists for this date, show empty table
-      const subjects = subjectsByDay[day] || [];
-      buildTable(subjects, {});
-    }
-  }).catch(error => {
-    console.error('Error fetching data:', error);
-    const subjects = subjectsByDay[day] || [];
-    buildTable(subjects, {});
-  });
-});
 
-function processAttendanceData(data, subjects) {
-  const processedData = {};
-  const subjectCount = subjects.length;
-  
-  // Process each student's data
-  for (const [student, attendance] of Object.entries(data)) {
-    if (Array.isArray(attendance)) {
-      // If the attendance array is shorter than the number of subjects, extend it
-      if (attendance.length < subjectCount) {
-        processedData[student] = [...attendance, ...new Array(subjectCount - attendance.length).fill(false)];
-      } else {
-        processedData[student] = attendance;
+  async function saveAttendance() {
+    if (currentRole !== 'teacher') { alert('Only teachers can save.'); return; }
+    const day = daySelect.value;
+    const date = dateSelect.value;
+    if (!date) { alert('Please choose a date'); return; }
+    const docId = `${day}_${date}`;
+    const subjects = subjectsByDay[day];
+
+    const data = {};
+    document.querySelectorAll('#attendance-body tr').forEach(row => {
+      const student = row.cells[0].textContent;
+      data[student] = [];
+      for (let i = 1; i <= subjects.length; i++) {
+        data[student].push(row.cells[i].firstChild.checked);
       }
-    } else {
-      // If it's not an array, initialize with all false values
-      processedData[student] = new Array(subjectCount).fill(false);
+    });
+
+    try {
+      // Show updating status
+      updateStatusIndicator('updating', '💾 Saving...');
+      
+      await setDoc(doc(db, 'attendance', docId), { 
+        subjects, 
+        data, 
+        day, 
+        date, 
+        updatedBy: auth.currentUser?.uid || null, 
+        updatedAt: Date.now() 
+      });
+      
+      alert(`Attendance saved for ${day} (${date})`);
+      await loadSavedDates();
+      
+      // The auto-update listener will handle the UI update automatically
+    } catch (e) {
+      console.error(e);
+      updateStatusIndicator('error', '🔴 Save Failed');
+      alert('Failed to save (check Firestore rules).');
     }
   }
-  
-  return processedData;
-}
-
-// 1. Modify the saveAttendance function to handle multiple subjects properly
-// 1. Modify the saveAttendance function to match the desired structure
-async function saveAttendance() {
-  if (currentRole !== 'teacher') { 
-    alert('Only teachers can save.'); 
-    return; 
-  }
-  const day = daySelect.value;
-  const date = dateSelect.value;
-  if (!date) { 
-    alert('Please choose a date'); 
-    return; 
-  }
-  const docId = `${day}_${date}`;
-
-  // Get all subjects for this day
-  const allSubjects = subjectsByDay[day] || [];
-  const subjectIndex = parseInt(subjectSelect.value, 10);
-  const subjectName = allSubjects[subjectIndex];
-  if (!subjectName) { 
-    alert('Select a subject'); 
-    return; 
-  }
-
-  // Get existing data first
-  let existingData = {};
-  let existingSubjects = [];
-  try {
-    const docSnap = await getDoc(doc(db, 'attendance', docId));
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      existingData = data.data || {};
-      existingSubjects = data.subjects || [];
-    }
-  } catch (e) {
-    console.error('Error fetching existing data:', e);
-  }
-
-  // If subjects array doesn't match the current day's subjects, update it
-  if (JSON.stringify(existingSubjects) !== JSON.stringify(allSubjects)) {
-    existingSubjects = [...allSubjects];
-  }
-
-  // Update attendance data for the selected subject
-  document.querySelectorAll('#attendance-body tr').forEach(row => {
-    const student = row.cells[0].textContent;
-    const checked = row.cells[1].firstChild.checked;
-    
-    // Initialize student data if it doesn't exist
-    if (!existingData[student]) {
-      existingData[student] = new Array(allSubjects.length).fill(false);
-    }
-    
-    // Ensure the array has the correct length
-    if (existingData[student].length !== allSubjects.length) {
-      // If length doesn't match, create a new array with correct length
-      const newAttendance = new Array(allSubjects.length).fill(false);
-      // Copy existing values if possible
-      for (let i = 0; i < Math.min(existingData[student].length, allSubjects.length); i++) {
-        newAttendance[i] = existingData[student][i];
-      }
-      existingData[student] = newAttendance;
-    }
-    
-    // Update only the selected subject
-    existingData[student][subjectIndex] = checked;
-  });
-
-  try {
-    await setDoc(doc(db, 'attendance', docId), { 
-      subjects: allSubjects,   // Save all subjects for this day
-      data: existingData, 
-      day, 
-      date, 
-      updatedBy: auth.currentUser?.uid || null, 
-      updatedAt: Date.now() 
-    }, { merge: true });
-
-    alert(`Attendance saved for ${subjectName} on ${day} (${date})`);
-    await loadSavedDates();
-  } catch (e) {
-    console.error(e);
-    alert('Failed to save (check Firestore rules).');
-  }
-}
-
-
-
 
  async function loadSavedDates() {
   savedDates.innerHTML = '<option value="">-- Select Saved Record --</option>';

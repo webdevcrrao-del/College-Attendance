@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Student Attendance</title>
+  <style>
+    :root {
+      --ink:#2c3e50;
+      --ink-2:#34495e;
+      --bg:#f5f7fa;
+      --brand:#3498db;
+      --brand-2:#2980b9;
+      --ok:#27ae60;
+      --warn:#f39c12;
+      --err:#e74c3c;
+    }
+
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Segoe UI', system-ui, sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+    }
+
+    header {
+      background:var(--ink);
+      color:white;
+      padding:16px 24px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      box-shadow:0 2px 6px rgba(0,0,0,.15);
+    }
+    header h1 {
+      margin:0;
+      font-size:1.35rem;
+      font-weight:600;
+      letter-spacing:.3px;
+    }
+
+    .btn {
+      padding:8px 14px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:0.95rem;
+      transition:all .2s ease;
+    }
+    .btn:hover { transform:translateY(-1px); }
+    .btn.primary { background:var(--brand); color:white; }
+    .btn.primary:hover { background:var(--brand-2); }
+    .btn.secondary { background:#95a5a6; color:white; }
+    .btn.secondary:hover { background:#7f8c8d; }
+    .btn.danger { background:var(--err); color:white; }
+    .btn.danger:hover { background:#c0392b; }
+
+    .container {
+      max-width:1100px;
+      margin:28px auto;
+      background:white;
+      padding:28px;
+      border-radius:14px;
+      box-shadow:0 6px 16px rgba(0,0,0,.08);
+    }
+
+    /* Filters */
+    .filters {
+      display:flex;
+      flex-wrap:wrap;
+      gap:18px;
+      align-items:end;
+      padding:16px;
+      margin-bottom:24px;
+      background:#f8f9fa;
+      border-radius:10px;
+      border:1px solid #e9ecef;
+    }
+    .filter-group {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .filter-group label {
+      font-size:0.9rem;
+      font-weight:600;
+      color:#495057;
+    }
+    input[type="date"] {
+      padding:9px;
+      border:1px solid #ced4da;
+      border-radius:8px;
+      font-size:0.95rem;
+      min-width:150px;
+    }
+    .semester-buttons {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    h2 { margin-top:0; margin-bottom:10px; color:var(--ink-2); font-size:1.2rem; }
+    h3 { color:var(--ink-2); margin-top:28px; margin-bottom:12px; font-size:1.05rem; }
+
+    /* Tables */
+    table {
+      width:100%;
+      border-collapse:collapse;
+      margin-top:14px;
+      border-radius:10px;
+      overflow:hidden;
+      font-size:0.95rem;
+    }
+    th, td {
+      border:1px solid #e2e8f0;
+      padding:12px;
+      text-align:center;
+    }
+    th {
+      background:var(--ink-2);
+      color:white;
+      font-weight:600;
+    }
+    tr:nth-child(even) { background:#f9fafb; }
+    tbody tr:hover td { background:#f1f5f9; }
+
+    .muted { color:#64748b; font-style:italic; }
+    .status-present { color:var(--ok); font-weight:600; }
+    .status-absent { color:var(--err); font-weight:600; }
+
+    .percentage { font-weight:600; }
+    .percentage.good { color:var(--ok); }
+    .percentage.warning { color:var(--warn); }
+    .percentage.danger { color:var(--err); }
+
+    /* Responsive */
+    @media(max-width:768px){
+      header { flex-direction:column; gap:10px; align-items:flex-start; }
+      .filters { flex-direction:column; }
+      .btn { width:100%; }
+      table { font-size:0.85rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1> My Attendance</h1>
+    <button id="logout-btn" class="btn danger">Logout</button>
+  </header>
+
+  <div class="container">
+    <div class="filters">
+      <div class="filter-group">
+        <label>From:</label>
+        <input type="date" id="from-date">
+      </div>
+      <div class="filter-group">
+        <label>To:</label>
+        <input type="date" id="to-date">
+      </div>
+      <div class="semester-buttons">
+        <button id="sem1-btn" class="btn secondary">Semester 1</button>
+        <button id="sem2-btn" class="btn secondary">Semester 2</button>
+        <button id="filter-btn" class="btn primary">Apply Filter</button>
+      </div>
+    </div>
+
+    <h2 id="student-name">Loading...</h2>
+
+    <h3> Attendance Summary</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Classes Attended</th>
+          <th>Total Classes</th>
+          <th>Attendance %</th>
+        </tr>
+      </thead>
+      <tbody id="summary-body">
+        <tr><td colspan="4" class="muted">No data available</td></tr>
+      </tbody>
+    </table>
+
+    <h3> Day-wise Attendance Details</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Day</th>
+          <th>Subject</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="details-body">
+        <tr><td colspan="4" class="muted">No data available</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  
+
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+   const firebaseConfig = {
+  apiKey: "AIzaSyBhGFDky_d8_00lfP2mnoihPEdAA8KT-to",
+  authDomain: "styearaiml.firebaseapp.com",
+  projectId: "styearaiml",
+  storageBucket: "styearaiml.firebasestorage.app",
+  messagingSenderId: "154595971440",
+  appId: "1:154595971440:web:50f6a9c609bf5c86bcffb5",
+  measurementId: "G-EF8CBVGCEK"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const summaryBody = document.getElementById('summary-body');
+    const detailsBody = document.getElementById('details-body');
+    const studentNameEl = document.getElementById('student-name');
+    const fromEl = document.getElementById('from-date');
+    const toEl = document.getElementById('to-date');
+    const filterBtn = document.getElementById('filter-btn');
+    const sem1Btn = document.getElementById('sem1-btn');
+    const sem2Btn = document.getElementById('sem2-btn');
+
+    let currentStudentKey = null;
+
+    document.getElementById('logout-btn').addEventListener('click', async ()=>{
+      await signOut(auth);
+      window.location.href = "index10.html";
+    });
+
+    function ymd(d){
+      const y=d.getFullYear();
+      const m=String(d.getMonth()+1).padStart(2,'0');
+      const day=String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function setSemesterDates(semester) {
+      const year = new Date().getFullYear();
+      if(semester === 1){
+      fromEl.value = `${year}-06-30`;
+      toEl.value   = `${year}-12-06`;
+    } else if(semester === 2){
+      fromEl.value = `${year}-12-08`;
+      toEl.value   = `${year}-06-17`;
+    }
+    }
+
+    (function setDefaultDates(){
+      const now = new Date();
+      toEl.value = ymd(now);
+      const first = new Date(now.getFullYear(), now.getMonth(), 1);
+      fromEl.value = ymd(first);
+    })();
+
+    async function getStudentKey(uid){
+      const userDoc = await getDoc(doc(db, "users", uid));
+      return userDoc.exists() ? userDoc.data().studentKey : null;
+    }
+
+    function getPercentageClass(percentage) {
+      if (percentage >= 75) return 'good';
+      if (percentage >= 60) return 'warning';
+      return 'danger';
+    }
+
+    async function loadAttendance(studentKey){
+      if (!studentKey) return;
+      
+      summaryBody.innerHTML = '<tr><td colspan="4" class="muted">Loading...</td></tr>';
+      detailsBody.innerHTML = '<tr><td colspan="4" class="muted">Loading...</td></tr>';
+      
+      try {
+        const snap = await getDocs(collection(db, "attendance"));
+        const summary = {};
+        let detailsRows = '';
+        const from = fromEl.value;
+        const to = toEl.value;
+        let totalRecordsFound = 0;
+
+        snap.forEach(docSnap => {
+          const data = docSnap.data();
+          const dateStr = data.date;
+          
+          // Skip if outside date range
+          if (from && dateStr < from) return;
+          if (to && dateStr > to) return;
+
+          const subjects = data.subjects || [];
+          const day = data.day || '';
+          const studentEntry = data.data && data.data[studentKey];
+
+          if (studentEntry && Array.isArray(studentEntry)) {
+            totalRecordsFound++;
+            subjects.forEach((sub, i) => {
+              if (!summary[sub]) summary[sub] = {present:0,total:0};
+              summary[sub].total++;
+              const present = studentEntry[i] === true;
+              if (present) summary[sub].present++;
+              
+              const statusClass = present ? 'status-present' : 'status-absent';
+              const statusText = present ? 'Present' : 'Absent';
+              detailsRows += `<tr><td>${dateStr}</td><td>${day}</td><td>${sub}</td><td class="${statusClass}">${statusText}</td></tr>`;
+            });
+          }
+        });
+
+        // Render summary
+        summaryBody.innerHTML = '';
+        if (Object.keys(summary).length === 0){
+          summaryBody.innerHTML = '<tr><td colspan="4" class="muted">No attendance records found in the selected date range</td></tr>';
+        } else {
+          Object.keys(summary).sort().forEach(sub => {
+            const {present,total} = summary[sub];
+            const perc = total ? ((present/total)*100).toFixed(1) : 0;
+            const percClass = getPercentageClass(parseFloat(perc));
+            summaryBody.innerHTML += `<tr>
+              <td><strong>${sub}</strong></td>
+              <td>${present}</td>
+              <td>${total}</td>
+              <td class="percentage ${percClass}">${perc}%</td>
+            </tr>`;
+          });
+        }
+
+        // Render details (sort by date descending)
+        if (detailsRows) {
+          const rows = detailsRows.split('</tr>').filter(row => row.trim());
+          const sortedRows = rows.sort((a, b) => {
+            const dateA = a.match(/<td>([^<]+)<\/td>/)?.[1] || '';
+            const dateB = b.match(/<td>([^<]+)<\/td>/)?.[1] || '';
+            return dateB.localeCompare(dateA);
+          });
+          detailsBody.innerHTML = sortedRows.map(row => row + '</tr>').join('');
+        } else {
+          detailsBody.innerHTML = '<tr><td colspan="4" class="muted">No attendance details found in the selected date range</td></tr>';
+        }
+
+      } catch (error) {
+        console.error('Error loading attendance:', error);
+        summaryBody.innerHTML = '<tr><td colspan="4" class="muted">Error loading data</td></tr>';
+        detailsBody.innerHTML = '<tr><td colspan="4" class="muted">Error loading data</td></tr>';
+      }
+    }
+
+    // Event listeners
+    filterBtn.addEventListener('click', ()=>{
+      if (currentStudentKey) {
+        loadAttendance(currentStudentKey);
+      }
+    });
+
+    sem1Btn.addEventListener('click', () => {
+      setSemesterDates(1);
+      if (currentStudentKey) {
+        loadAttendance(currentStudentKey);
+      }
+    });
+
+    sem2Btn.addEventListener('click', () => {
+      setSemesterDates(2);
+      if (currentStudentKey) {
+        loadAttendance(currentStudentKey);
+      }
+    });
+
+    onAuthStateChanged(auth, async (user)=>{
+      if (!user){
+        window.location.href = "index10.html";
+      } else {
+        const studentKey = await getStudentKey(user.uid);
+        currentStudentKey = studentKey;
+        
+        if (studentKey) {
+          // Extract name from studentKey format "ROLLNUMBER - NAME"
+          const nameParts = studentKey.split(' - ');
+          const displayName = nameParts.length > 1 ? nameParts.slice(1).join(' - ') : studentKey;
+          studentNameEl.textContent = `Welcome, ${displayName}`;
+          
+          // Load initial attendance data
+          loadAttendance(studentKey);
+        } else {
+          studentNameEl.textContent = `Welcome, ${user.email}`;
+          summaryBody.innerHTML = '<tr><td colspan="4" class="muted">Student key not found. Please contact admin.</td></tr>';
+        }
+      }
+    });
+  </script>
+</body>
+</html>
