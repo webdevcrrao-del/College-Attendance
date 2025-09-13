@@ -190,14 +190,14 @@
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-  apiKey: "AIzaSyC6_3eUYW7BaUT0iae08cRgCODOle4bI8Y",
-  authDomain: "styeardsattendance.firebaseapp.com",
-  projectId: "styeardsattendance",
-  storageBucket: "styeardsattendance.firebasestorage.app",
-  messagingSenderId: "1068844406713",
-  appId: "1:1068844406713:web:a7731858db281745cf4868",
-  measurementId: "G-05CCVGNK1R"
+    const firebaseConfig = {
+  apiKey: "AIzaSyBheBBqf__GHWeD7DaLQzIjJDu3n-7srY8",
+  authDomain: "college-attendance-435d2.firebaseapp.com",
+  projectId: "college-attendance-435d2",
+  storageBucket: "college-attendance-435d2.firebasestorage.app",
+  messagingSenderId: "322925751663",
+  appId: "1:322925751663:web:4e2f75c2041cb88988cc9a",
+  measurementId: "G-QNJ7HWYS8L"
 };
 
     const app = initializeApp(firebaseConfig);
@@ -307,53 +307,95 @@
     });
 
     // Attendance loader
-    async function loadStudentAttendance(studentKey) {
-      const snap = await getDocs(collection(db, "attendance"));
+   // Attendance loader
+async function loadStudentAttendance(studentKey) {
+  const snap = await getDocs(collection(db, "attendance"));
 
-      const subjectStats = {};
-      const startDate = startDateEl.value;
-      const endDate = endDateEl.value;
+  const subjectStats = {};
+  const startDate = startDateEl.value;
+  const endDate = endDateEl.value;
 
-      snap.forEach(doc => {
-        const docId = doc.id; // e.g., "Monday_2025-08-20"
-        const datePart = docId.split("_")[1]; // "2025-08-20"
+  snap.forEach(doc => {
+    const docId = doc.id; // e.g., "Monday_2025-08-20"
+    const datePart = docId.split("_")[1]; // "2025-08-20"
 
-        if (startDate && datePart < startDate) return;
-        if (endDate && datePart > endDate) return;
+    if (startDate && datePart < startDate) return;
+    if (endDate && datePart > endDate) return;
 
-        const data = doc.data();
-        if (Array.isArray(data.subjects) && data.data && data.data[studentKey]) {
-          const studentEntry = data.data[studentKey];
-          data.subjects.forEach((sub, i) => {
-            if (!subjectStats[sub]) subjectStats[sub] = { present:0, total:0 };
-            subjectStats[sub].total++;
-            if (studentEntry[i] === true) {
-              subjectStats[sub].present++;
-            }
-          });
+    const data = doc.data();
+    
+    // Check if this class had at least one attendance marked
+    let classHasAttendance = false;
+    if (data.data) {
+      for (const student in data.data) {
+        if (Array.isArray(data.data[student])) {
+          // Check if any attendance was marked for any student
+          if (data.data[student].some(attendance => attendance === true || attendance === false)) {
+            classHasAttendance = true;
+            break;
+          }
         }
-      });
-
-      currentStudentName = studentKey;
-      studentName.textContent = studentKey;
-      tbody.innerHTML = "";
-      Object.keys(subjectStats).forEach(sub => {
-        const {present, total} = subjectStats[sub];
-        const avg = total ? ((present/total)*100).toFixed(1) : 0;
-        tbody.innerHTML += `
-          <tr>
-            <td>${sub}</td>
-            <td>${present}</td>
-            <td>${total}</td>
-            <td>${avg}%</td>
-          </tr>
-        `;
-      });
-
-      lastReport = subjectStats;
-      downloadBtn.style.display = "inline-block";
-      detailsDiv.style.display = "block";
+      }
     }
+
+    // Only process if this class had attendance marked
+    if (classHasAttendance && Array.isArray(data.subjects) && data.data && data.data[studentKey]) {
+      const studentEntry = data.data[studentKey];
+     data.subjects.forEach((sub, i) => {
+  if (studentEntry[i] !== undefined) {
+    // Check if at least one student was marked PRESENT for this subject
+    let subjectHasAttendance = false;
+    for (const studentId in data.data) {
+      const studentData = data.data[studentId];
+      if (Array.isArray(studentData) && studentData[i] === true) {
+        subjectHasAttendance = true;
+        break;
+      }
+    }
+
+    // Only count if someone actually attended (true exists)
+    if (subjectHasAttendance) {
+      if (!subjectStats[sub]) subjectStats[sub] = { present: 0, total: 0 };
+      subjectStats[sub].total++;
+      if (studentEntry[i] === true) {
+        subjectStats[sub].present++;
+      }
+    }
+  }
+});
+    }
+  });
+
+  currentStudentName = studentKey;
+  studentName.textContent = studentKey;
+  tbody.innerHTML = "";
+  
+  // Only show subjects that have at least one class with attendance
+  Object.keys(subjectStats).forEach(sub => {
+    const { present, total } = subjectStats[sub];
+    // Only display if there are classes with attendance for this subject
+    if (total > 0) {
+      const avg = total ? ((present / total) * 100).toFixed(1) : 0;
+      tbody.innerHTML += `
+        <tr>
+          <td>${sub}</td>
+          <td>${present}</td>
+          <td>${total}</td>
+          <td>${avg}%</td>
+        </tr>
+      `;
+    }
+  });
+
+  // Show message if no attendance data found
+  if (tbody.innerHTML === "") {
+    tbody.innerHTML = `<tr><td colspan="4" class="muted">No attendance data found for ${studentKey}</td></tr>`;
+  }
+
+  lastReport = subjectStats;
+  downloadBtn.style.display = "inline-block";
+  detailsDiv.style.display = "block";
+}
 
     // Auth check
     onAuthStateChanged(auth, (user) => {
