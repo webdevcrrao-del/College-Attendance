@@ -266,8 +266,8 @@
     <div class="last-updated" id="last-updated-info"></div>
 
     <div id="teacher-buttons" class="row">
-      <button id="save-btn">Save Attendance</button>
-      <button id="export-btn">Export as CSV</button>
+      <button id="save-btn2">Save Attendance</button>
+      <button id="export-btn2">Export as CSV</button>
       <button id="toggle-auto-update">🔄 Auto-Update: ON</button>
     </div>
   </div>
@@ -359,6 +359,8 @@ const firebaseConfig = {
   const addClassBtn = $("add-class-btn");
   const saveBtn = $("save-btn");
   const exportBtn = $("export-btn");
+  const saveBtn2 = $("save-btn2");
+  const exportBtn2 = $("export-btn2");
   const userRoleInfo = $("user-role-info");
   const missingRole = $("missing-role");
   const autoUpdateStatus = $("auto-update-status");
@@ -785,6 +787,9 @@ function removeClass() {
 
   saveBtn.addEventListener('click', saveAttendance);
   exportBtn.addEventListener('click', exportCSV);
+  saveBtn2.addEventListener('click', saveAttendance);
+  exportBtn2.addEventListener('click', exportCSV);
+
 
   function populateDayDropdown() {
     daySelect.innerHTML = '';
