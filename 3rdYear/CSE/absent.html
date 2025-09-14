@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Absent Students — View & Download</title>
+  <!-- Use compat builds to avoid module/import issues in sandbox -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    body{font-family:Segoe UI,system-ui,-apple-system,Arial;margin:0;background:#f5f7fa}
+    header{background:#2c3e50;color:#fff;padding:16px;text-align:center}
+    .container{max-width:1000px;margin:24px auto;background:#fff;padding:18px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    label{font-size:0.95rem}
+    select,input[type=date]{padding:8px;border-radius:6px;border:1px solid #d1d5db}
+    button{padding:8px 12px;border-radius:6px;border:0;background:#2563eb;color:#fff;cursor:pointer}
+    button.secondary{background:#6b7280}
+    button.danger{background:#ef4444}
+    table{width:100%;border-collapse:collapse;margin-top:14px}
+    th,td{border:1px solid #e5e7eb;padding:10px;text-align:left}
+    th{background:#374151;color:#fff}
+    .muted{color:#6b7280}
+    .error{color:#b91c1c;margin-top:10px}
+    .info{color:#064e3b;margin-top:10px}
+    pre{background:#0f172a;color:#e6eef8;padding:10px;border-radius:6px;overflow:auto}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Absent Students — View & Download</h1>
+</header>
+
+<div class="container">
+  <div class="row">
+    <label>Start: <input id="start-date" type="date"></label>
+    <label>End: <input id="end-date" type="date"></label>
+    <label>Day:
+      <select id="day-select">
+        <option value="All">All</option>
+        <option value="Monday">Monday</option>
+        <option value="Tuesday">Tuesday</option>
+        <option value="Wednesday">Wednesday</option>
+        <option value="Thursday">Thursday</option>
+        <option value="Friday">Friday</option>
+        <option value="Saturday">Saturday</option>
+      </select>
+    </label>
+    <label>Class: <select id="class-select"></select></label>
+  </div>
+
+  <div class="row" style="margin-top:10px;">
+    <button id="view-btn">View Report</button>
+    <button id="download-btn">Download CSV</button>
+    <button id="sample-btn" class="secondary">Load Sample</button>
+    <div id="auth-area" style="margin-left:auto;display:flex;gap:8px;align-items:center">
+      <input id="email" type="text" placeholder="email" style="width:180px;padding:6px;border-radius:6px;border:1px solid #d1d5db">
+      <input id="password" type="password" placeholder="password" style="width:140px;padding:6px;border-radius:6px;border:1px solid #d1d5db">
+      <button id="signin-btn" class="secondary">Sign in</button>
+      <button id="signout-btn" class="secondary" style="display:none">Sign out</button>
+    </div>
+  </div>
+
+  <div id="messages" style="margin-top:12px"></div>
+
+  <table id="report-table" style="display:none;">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Status</th>
+      <th>Absent Count</th>
+      <th>Absent Students</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+
+  <h3 style="margin-top:18px">Debug / Console</h3>
+  <pre id="debug-output">No actions yet.</pre>
+</div>
+
+<script>
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAtJEWDEWP9MCitJhIeHLT1LJ_K8lqQJQc",
+    authDomain: "rdyearcse-68e92.firebaseapp.com",
+    projectId: "rdyearcse-68e92",
+    storageBucket: "rdyearcse-68e92.firebasestorage.app",
+    messagingSenderId: "13269601395",
+    appId: "1:13269601395:web:cee7d06f895c8988b1ae06",
+    measurementId: "G-KL663GJN3Z"
+  };
+
+  if (!firebase.apps || !firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // Full students list (copied from index10.html)
+  const students = [
+"23XV1M0501 - Akunur Sai Brinda","23XV1M0502 - Amaram Sindhu Reddy","23XV1M0503 - A. Amrutha Varshini","23XV1M0504 - Appana Hemanth","23XV1M0505 - A. Valli Sai Meghana","23XV1M0506 - B Hamsa Lekha","23XV1M0507 - Bhavana Kodali","23XV1M0508 - Bilal Ahmed","23XV1M0509 - Chinmayi Bachu","23XV1M0510 - C. Samiha Krishna","23XV1M0511 - D. Narusimha Sai Teja","23XV1M0512 - Doddapuneni Vinay","23XV1M0513 - Ganti Vaishnavi","23XV1M0514 - Gollapally Shivaraj","23XV1M0515 - G Ashrith Reddy","23XV1M0516 - Gundelli Naviej","23XV1M0517 - Harineesha Nuttaki","23XV1M0518 - Ishwar Mamidi","23XV1M0519 - Jakka Jishnu Sai","23XV1M0520 - Kambampati Anirudh","23XV1M0521 - K. Sai Aswini Bhaavya","23XV1M0522 - Kota Sreeja Reddy","23XV1M0523 - T Shashidhar Yadav","23XV1M0524 - K. Krishna Charitha","23XV1M0525 - Kruthi Seetha","23XV1M0526 - Pranav Manda","23XV1M0527 - Patwari Harshita","23XV1M0528 - P.M.N Venkata Aditya","23XV1M0529 - S. Bhavajnya","23XV1M0530 - Uppada Enos","23XV1M0531 - Vattikonda Tanvi","23XV1M0532 - V Nachiketh Reddy","23XV1M0533 - K. Yashov Vardhan Reddy","23XV1M0534 - Zoya Fatima","23XV1M0535 - G. Vamshi Krishna","23XV1M0536 - M. Venkata Sai Meeraj","23XV1M0537 - T Naga Yaswitha","23XV1M0538 - Avala Charan","23XV1M0539 - M. Joseph Reddy","23XV1M0540 - Ada Anurag Reddy","23XV1M0541 - Komati Yashvitha","23XV1M0542 - J. Sai Mokshagna","23XV1M0543 - Krupali Rao Katari","23XV1M0544 - Bharatula Sai Lahari","23XV1M0545 - Thapasvi Pooguri","23XV1M0546 - Kasireddy Rudra Vamsi","23XV1M0547 - Shaik Tasneem","23XV1M0548 - N. Harsha Vardhan Raju","23XV1M0549 - Konaparthi Varun","23XV1M0550 - Sai Rakesh Sai Srinivasan","23XV1M0551 - Atmakuri Akshath","23XV1M0552 - Ramala Siddu Vinay","23XV1M0553 - Pre Sai Bagwi","23XV1M0554 - Vemulapalli Bhavana","23XV1M0555 - Banda Karthik Yadav","23XV1M0556 - G. Shaurya Varma"
+  ];
+
+  const subjectsByDay = {
+    'Monday': ['NLP', 'CN', 'DEV-OPS', 'DEV-OPSLAB'],
+    'Tuesday': ['DEV-OPS', 'CN', 'IP', 'ACS-LAB'],
+    'Wednesday': ['NLP', 'DAA', 'IP', 'UI'],
+    'Thursday': ['CN-Lab', 'DAA','IPR'],
+    'Friday': ['NLP', 'DAA','IP','Hackathon'],
+    'Saturday': []
+  };
+
+  // DOM
+  const daySelect = document.getElementById('day-select');
+  const classSelect = document.getElementById('class-select');
+  const startInput = document.getElementById('start-date');
+  const endInput = document.getElementById('end-date');
+  const viewBtn = document.getElementById('view-btn');
+  const downloadBtn = document.getElementById('download-btn');
+  const sampleBtn = document.getElementById('sample-btn');
+  const messages = document.getElementById('messages');
+  const debugOutput = document.getElementById('debug-output');
+  const reportTable = document.getElementById('report-table');
+  const reportTbody = reportTable.querySelector('tbody');
+  const signinBtn = document.getElementById('signin-btn');
+  const signoutBtn = document.getElementById('signout-btn');
+  const emailInput = document.getElementById('email');
+  const passInput = document.getElementById('password');
+
+  function dbg(v){ debugOutput.textContent = typeof v==='string'?v:JSON.stringify(v,null,2); console.log(v); }
+  function setMessage(msg, type='info'){ messages.innerHTML = `<div class="${type}">${msg}</div>` }
+  function clearMessage(){ messages.innerHTML = '' }
+
+  // Populate class options: if day=All, union of all classes; else classes for that day
+  function populateClassOptions(){
+    classSelect.innerHTML = '';
+    if (daySelect.value === 'All'){
+      const set = new Set();
+      Object.values(subjectsByDay).forEach(arr => arr.forEach(s=>s && s.trim() && set.add(s)));
+      Array.from(set).forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; classSelect.appendChild(o); });
+    } else {
+      (subjectsByDay[daySelect.value] || []).forEach(s=>{ if (!s||!s.trim()) return; const o=document.createElement('option'); o.value=s; o.textContent=s; classSelect.appendChild(o); });
+    }
+    if (!classSelect.options.length){ const o=document.createElement('option'); o.disabled=true; o.textContent='-- no classes --'; classSelect.appendChild(o); }
+  }
+  daySelect.addEventListener('change', populateClassOptions);
+  // default date values
+  startInput.value = new Date().toISOString().split('T')[0];
+  endInput.value = new Date().toISOString().split('T')[0];
+  populateClassOptions();
+
+  // Auth handlers (optional)
+  auth.onAuthStateChanged(u=>{
+    if (u){ setMessage(`Signed in: ${u.email||u.uid}`,'info'); signinBtn.style.display='none'; signoutBtn.style.display='inline-block'; }
+    else { setMessage('Not signed in (read rules may block access)','info'); signinBtn.style.display='inline-block'; signoutBtn.style.display='none'; }
+  });
+  signinBtn.addEventListener('click',async()=>{
+    try{ await auth.signInWithEmailAndPassword(emailInput.value.trim(), passInput.value); setMessage('Signed in','info'); }catch(e){ dbg(e); setMessage(`Sign-in failed: ${e.message||e.code}`,'error'); }
+  });
+  signoutBtn.addEventListener('click',async()=>{ try{ await auth.signOut(); setMessage('Signed out','info')}catch(e){ dbg(e); }});
+
+  // helper: weekday name from date
+  function weekdayName(dt){ return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dt.getDay()]; }
+
+  // Fetch absent data for a single date — supports dayFilter and subjectName
+  async function fetchForDate(dateStr, dayFilter, subjectName){
+    // If dayFilter is specific (not All) we will attempt to read doc with id `${dayFilter}_${dateStr}`
+    // If dayFilter === 'All' we query attendance documents where date == dateStr and pick the doc that contains the subjectName (if any)
+    const result = { date: dateStr, exists:false, subjectFound:false, absent:[], error:null };
+    try{
+      if (dayFilter !== 'All'){
+        const docId = `${dayFilter}_${dateStr}`;
+        const snap = await db.collection('attendance').doc(docId).get();
+        if (!snap.exists){ result.exists=false; return result; }
+        result.exists = true;
+        const saved = snap.data() || {};
+        const subjIdx = Array.isArray(saved.subjects) ? saved.subjects.indexOf(subjectName) : -1;
+        if (subjIdx === -1) { result.subjectFound=false; return result; }
+        result.subjectFound = true;
+        // compute absent
+        students.forEach(s=>{ const row = (saved.data && saved.data[s]) || []; if (!row[subjIdx]) result.absent.push(s); });
+        return result;
+      } else {
+        // query docs where date == dateStr
+        const qsnap = await db.collection('attendance').where('date','==',dateStr).get();
+        if (qsnap.empty){ result.exists=false; return result; }
+        result.exists = true;
+        // find a doc that contains the subjectName
+        let found = false;
+        for (const doc of qsnap.docs){ const saved = doc.data()||{}; const subjIdx = Array.isArray(saved.subjects)? saved.subjects.indexOf(subjectName) : -1; if (subjIdx !== -1){ found = true; result.subjectFound = true; students.forEach(s=>{ const row = (saved.data&&saved.data[s])||[]; if (!row[subjIdx]) result.absent.push(s); }); break; } }
+        return result;
+      }
+    }catch(err){ dbg(['Error fetching', dateStr, err]); result.error = err.message || String(err); return result; }
+  }
+
+  // Iterate date range and collect results — always returns an entry for each calendar date between start and end (inclusive)
+  async function fetchAbsentBetween(startDateStr, endDateStr, dayFilter, subjectName){
+    const start = new Date(startDateStr + 'T00:00:00');
+    const end = new Date(endDateStr + 'T00:00:00');
+    if (isNaN(start)||isNaN(end)|| start> end) throw new Error('Invalid date range');
+    const rows = [];
+    let cur = new Date(start);
+    while (cur <= end){
+      const dateStr = cur.toLocaleDateString('en-CA'); // Correct local YYYY-MM-DD
+
+      // If user selected a specific day and that date's calendar weekday doesn't match the selected day,
+      // still attempt to fetch using the selected day name because saved docs are keyed by the teacher's selected day at save-time.
+      const res = await fetchForDate(dateStr, dayFilter, subjectName);
+      rows.push(res);
+      cur.setDate(cur.getDate()+1);
+    }
+    return rows;
+  }
+
+  function renderRows(rows){
+  reportTbody.innerHTML = rows.map(r=>{
+    let status = r.error 
+      ? `ERROR: ${r.error}` 
+      : (!r.exists 
+        ? 'No record' 
+        : (!r.subjectFound ? 'Subject not recorded' : 'OK'));
+    
+    const absentCount = r.absent && r.absent.length ? r.absent.length : 0;
+    const absentHtml = r.absent && r.absent.length 
+      ? r.absent.join('<br>') 
+      : (r.subjectFound ? 'None' : '-');
+
+    return `<tr>
+              <td>${r.date}</td>
+              <td>${status}</td>
+              <td>${absentCount}</td>
+              <td>${absentHtml}</td>
+            </tr>`;
+  }).join('');
+  reportTable.style.display = rows.length ? 'table' : 'none';
+}
+
+
+  function exportCSV(rows){
+    // CSV columns: Date,Status,AbsentCount,AbsentStudents
+    const lines = [['Date','Status','AbsentCount','AbsentStudents']];
+    rows.forEach(r=>{
+      const status = r.error ? `ERROR: ${r.error}` : (!r.exists ? 'No record' : (!r.subjectFound ? 'Subject not recorded' : 'OK'));
+      const absentList = r.absent && r.absent.length ? r.absent.join('; ') : '';
+      const absentCount = r.absent? r.absent.length : 0;
+      lines.push([r.date, status, absentCount, absentList]);
+    });
+    const csv = lines.map(row=> row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type:'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `absent_report_${new Date().toISOString().slice(0,10)}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  }
+
+  async function getResults(){
+    clearMessage(); dbg('Collecting results...');
+    const sd = startInput.value; const ed = endInput.value; const dayFilter = daySelect.value; const subjectName = classSelect.value;
+    if (!sd || !ed || !subjectName){ setMessage('Please select start date, end date and a class','error'); return null; }
+    try{
+      const rows = await fetchAbsentBetween(sd,ed,dayFilter,subjectName);
+      dbg(rows);
+      return rows;
+    }catch(e){ dbg(e); setMessage('Failed: '+ (e.message||e),'error'); return null; }
+  }
+
+  viewBtn.addEventListener('click', async ()=>{
+    const rows = await getResults(); if (rows) renderRows(rows);
+  });
+  downloadBtn.addEventListener('click', async ()=>{
+    const rows = await getResults(); if (rows) exportCSV(rows);
+  });
+
+  // Sample/test case to verify UI without Firestore access
+  sampleBtn.addEventListener('click', ()=>{
+    clearMessage(); dbg('Loading sample rows');
+    const sample = [
+      {date:'2025-09-01', exists:true, subjectFound:true, absent:['23XV1M0502 - Amaram Sindhu Reddy','23XV1M0530 - Uppada Enos']},
+      {date:'2025-09-02', exists:true, subjectFound:false, absent:[]},
+      {date:'2025-09-03', exists:false, subjectFound:false, absent:[]}
+    ];
+    renderRows(sample);
+    setMessage('Sample data loaded — use this to verify view and CSV export.','info');
+  });
+
+  // expose helpers for debugging in console
+  window.__absent_helpers = { fetchForDate, fetchAbsentBetween, exportCSV };
+
+</script>
+</body>
+</html>

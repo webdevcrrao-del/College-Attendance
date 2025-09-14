@@ -214,7 +214,11 @@
 
   <button onclick="window.location.href='sem.html'" 
           style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
-    View Class Records
+    Classes taken in the Semester
+  </button>
+  <button onclick="window.location.href='absent.html'" 
+          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
+    Check Absent Students
   </button>
         <!-- <label>Radius (m): <input id="radius-input" type="number" min="5" max="200" step="1" value="35" /></label>
         <label>Expires in (min): <input id="expire-mins" type="number" min="1" max="15" step="1" value="3" /></label> -->
@@ -292,14 +296,14 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   import { getFirestore, doc, setDoc, getDoc, getDocs, collection, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
   import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
- const firebaseConfig = {
-  apiKey: "AIzaSyBheBBqf__GHWeD7DaLQzIjJDu3n-7srY8",
-  authDomain: "college-attendance-435d2.firebaseapp.com",
-  projectId: "college-attendance-435d2",
-  storageBucket: "college-attendance-435d2.firebasestorage.app",
-  messagingSenderId: "322925751663",
-  appId: "1:322925751663:web:4e2f75c2041cb88988cc9a",
-  measurementId: "G-QNJ7HWYS8L"
+const firebaseConfig = {
+  apiKey: "AIzaSyBl-B5U3-jYjt07OKFfJ4ASVEcjd4xgAUg",
+  authDomain: "rdyearcseds.firebaseapp.com",
+  projectId: "rdyearcseds",
+  storageBucket: "rdyearcseds.firebasestorage.app",
+  messagingSenderId: "624751566754",
+  appId: "1:624751566754:web:febb7ad7cb370ff0d01cfb",
+  measurementId: "G-8VEQQWWZP4"
 };
 
   const app = initializeApp(firebaseConfig);

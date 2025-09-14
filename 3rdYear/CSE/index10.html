@@ -212,9 +212,13 @@
           style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">  Student Attendance Overview
 </button>
 
-  <button onclick="window.location.href='sem.html'" 
+ <button onclick="window.location.href='sem.html'" 
           style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
-    View Class Records
+    Classes taken in the Semester
+  </button>
+  <button onclick="window.location.href='absent.html'" 
+          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
+    Check Absent Students
   </button>
         <!-- <label>Radius (m): <input id="radius-input" type="number" min="5" max="200" step="1" value="35" /></label>
         <label>Expires in (min): <input id="expire-mins" type="number" min="1" max="15" step="1" value="3" /></label> -->
@@ -292,14 +296,14 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   import { getFirestore, doc, setDoc, getDoc, getDocs, collection, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
   import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
- const firebaseConfig = {
-  apiKey: "AIzaSyBheBBqf__GHWeD7DaLQzIjJDu3n-7srY8",
-  authDomain: "college-attendance-435d2.firebaseapp.com",
-  projectId: "college-attendance-435d2",
-  storageBucket: "college-attendance-435d2.firebasestorage.app",
-  messagingSenderId: "322925751663",
-  appId: "1:322925751663:web:4e2f75c2041cb88988cc9a",
-  measurementId: "G-QNJ7HWYS8L"
+const firebaseConfig = {
+  apiKey: "AIzaSyAtJEWDEWP9MCitJhIeHLT1LJ_K8lqQJQc",
+  authDomain: "rdyearcse-68e92.firebaseapp.com",
+  projectId: "rdyearcse-68e92",
+  storageBucket: "rdyearcse-68e92.firebasestorage.app",
+  messagingSenderId: "13269601395",
+  appId: "1:13269601395:web:cee7d06f895c8988b1ae06",
+  measurementId: "G-KL663GJN3Z"
 };
 
   const app = initializeApp(firebaseConfig);
@@ -322,52 +326,71 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
    * Data
    *************************************/
   const students = [
-"BT25CS01 - BHAGAM JAITHRA PRANAV",
-"BT25CS02 - SAGI VEDESH",
-"BT25CS04 - NAMPALLY NITHYA SHRESHTA",
-"BT25CS05 - DANDIBHOTLA SANJANA SARVANI",
-"BT25CS07 - YALAVARTHI SOMITHRI",
-"BT25CS08 - KOLLAPUDI VILOK",
-"BT25CS09 - CHAGANTI SARVANI HIRANMAYI",
-"BT25CS10 - BOBBILI AGRANI SRIRAM",
-"BT25CS11 - ADAPALA SAHASRA ANJALI",
-"BT25CS12 - V BHANU KIRAN GOUD",
-"BT25CS13 - MANNENI PARDHU SAI LAKSHMAN",
-"BT25CS14 - RAMPELLY SHIVA CHARAN",
-"BT25CS15 - ALASAPURI HARI AKSHAY",
-"BT25CS16 - SAMRIDHI SAANJEEV",
-"BT25CS17 - RAMINENI AARPIT",
-"BT25CS18 - Devaku Sai Nikhil",
-"BT25CS19 - Velicheti Sai Poojitha",
-"BT25CS20 - M. VIKRAM",
-"BT25CS21 - ALLADI SRIVARDHAN",
-"BT25CS22 - KAILA THAKSHITH PRANAV REDDY",
-"BT25CS23 - RITHIK SHETTYGARI",
-"BT25CS24 - VATTIKONDA JATHIN CHOWDARY",
-"BT25CS25 - SPOORTHI LAVU",
-"BT25CS26 - CHEEDARLA SAKETH",
-"BT25CS28 - MALLE CHARAN TEJA",
-"BT25CS29 - DASI RESHVITHA",
-"BT25CS30 - DUVVURI SAI NAVYA",
-"BT25CS33 - G SIDDHARTHA",
-"BT25CS34 - SHADA DEEPTHANSH REDDY",
-"BT25CS35 - THANNIRU AISHWARYA",
-"BT25CS36 - PULLAGURLA SUDESHNA REDDY",
-"BT25CS37 - BHUKYA AKRITI SHARANYA",
-"BT25CS38 - CHAPARALA LOKA NAGA VENKAT LOCHAN",
-"BT25CS39 - MANGALI SAI KOUSHIK",
-"BT25CS40 - ROKKAM SARAT CHANDRA",
-"BT25CS41 - SARIPELLA PUJYANTH VARMA",
-"BT25CS42 - MYNENI SANTHOSH RAM",
+"23XV1M0501 - Akunur Sai Brinda",
+"23XV1M0502 - Amaram Sindhu Reddy",
+"23XV1M0503 - A. Amrutha Varshini",
+"23XV1M0504 - Appana Hemanth",
+"23XV1M0505 - A. Valli Sai Meghana",
+"23XV1M0506 - B Hamsa Lekha",
+"23XV1M0507 - Bhavana Kodali",
+"23XV1M0508 - Bilal Ahmed",
+"23XV1M0509 - Chinmayi Bachu",
+"23XV1M0510 - C. Samiha Krishna",
+"23XV1M0511 - D. Narusimha Sai Teja",
+"23XV1M0512 - Doddapuneni Vinay",
+"23XV1M0513 - Ganti Vaishnavi",
+"23XV1M0514 - Gollapally Shivaraj",
+"23XV1M0515 - G Ashrith Reddy",
+"23XV1M0516 - Gundelli Naviej",
+"23XV1M0517 - Harineesha Nuttaki",
+"23XV1M0518 - Ishwar Mamidi",
+"23XV1M0519 - Jakka Jishnu Sai",
+"23XV1M0520 - Kambampati Anirudh",
+"23XV1M0521 - K. Sai Aswini Bhaavya",
+"23XV1M0522 - Kota Sreeja Reddy",
+"23XV1M0523 - T Shashidhar Yadav",
+"23XV1M0524 - K. Krishna Charitha",
+"23XV1M0525 - Kruthi Seetha",
+"23XV1M0526 - Pranav Manda",
+"23XV1M0527 - Patwari Harshita",
+"23XV1M0528 - P.M.N Venkata Aditya",
+"23XV1M0529 - S. Bhavajnya",
+"23XV1M0530 - Uppada Enos",
+"23XV1M0531 - Vattikonda Tanvi",
+"23XV1M0532 - V Nachiketh Reddy",
+"23XV1M0533 - K. Yashov Vardhan Reddy",
+"23XV1M0534 - Zoya Fatima",
+"23XV1M0535 - G. Vamshi Krishna",
+"23XV1M0536 - M. Venkata Sai Meeraj",
+"23XV1M0537 - T Naga Yaswitha",
+"23XV1M0538 - Avala Charan",
+"23XV1M0539 - M. Joseph Reddy",
+"23XV1M0540 - Ada Anurag Reddy",
+"23XV1M0541 - Komati Yashvitha",
+"23XV1M0542 - J. Sai Mokshagna",
+"23XV1M0543 - Krupali Rao Katari",
+"23XV1M0544 - Bharatula Sai Lahari",
+"23XV1M0545 - Thapasvi Pooguri",
+"23XV1M0546 - Kasireddy Rudra Vamsi",
+"23XV1M0547 - Shaik Tasneem",
+"23XV1M0548 - N. Harsha Vardhan Raju",
+"23XV1M0549 - Konaparthi Varun",
+"23XV1M0550 - Sai Rakesh Sai Srinivasan",
+"23XV1M0551 - Atmakuri Akshath",
+"23XV1M0552 - Ramala Siddu Vinay",
+"23XV1M0553 - Pre Sai Bagwi",
+"23XV1M0554 - Vemulapalli Bhavana",
+"23XV1M0555 - Banda Karthik Yadav",
+"23XV1M0556 - G. Shaurya Varma",
 
   ];
 
   const subjectsByDay = {
-    'Monday': ['M&C', 'English Theory', 'PPS Theory', 'EDC','Sports/Library'],
-    'Tuesday': ['M&C', 'EC', 'English Theory', 'English-Lab'],
-    'Wednesday': ['M&C', 'EC', 'Engineering Workshop', 'IPR'],
-    'Thursday': ['PPS-Lab', 'DA-Lab',],
-    'Friday': ['M&C', 'PPS Theory','EDC','EDC/M&C Assignments'],
+    'Monday': ['NLP', 'CN', 'DEV-OPS', 'DEV-OPSLAB'],
+    'Tuesday': ['DEV-OPS', 'CN', 'IP', 'ACS-LAB'],
+    'Wednesday': ['NLP', 'DAA', 'IP', 'UI'],
+    'Thursday': ['CN-Lab', 'DAA','IPR'],
+    'Friday': ['NLP', 'DAA','IP','Hackathon'],
     'Saturday': ['']
   };
 
