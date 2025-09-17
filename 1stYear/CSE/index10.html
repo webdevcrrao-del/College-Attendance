@@ -132,7 +132,7 @@
 </head>
 <body>
 <header style="display:flex; justify-content:space-between; align-items:center; padding:20px; background:#2c3e50; color:white;">
-  <h1 style="margin:0;">Attendance System For CSE(CORE)</h1>
+  <h1 style="margin:0;">Attendance System For CSE(DS)</h1>
   
 </header>
 
@@ -214,7 +214,11 @@
 
   <button onclick="window.location.href='sem.html'" 
           style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
-    View Class Records
+    Classes taken in the Semester
+  </button>
+  <button onclick="window.location.href='absent.html'" 
+          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
+    Check Absent Students
   </button>
         <!-- <label>Radius (m): <input id="radius-input" type="number" min="5" max="200" step="1" value="35" /></label>
         <label>Expires in (min): <input id="expire-mins" type="number" min="1" max="15" step="1" value="3" /></label> -->
@@ -262,8 +266,8 @@
     <div class="last-updated" id="last-updated-info"></div>
 
     <div id="teacher-buttons" class="row">
-      <button id="save-btn">Save Attendance</button>
-      <button id="export-btn">Export as CSV</button>
+      <button id="save-btn2">Save Attendance</button>
+      <button id="export-btn2">Export as CSV</button>
       <button id="toggle-auto-update">🔄 Auto-Update: ON</button>
     </div>
   </div>
@@ -393,6 +397,8 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   const addClassBtn = $("add-class-btn");
   const saveBtn = $("save-btn");
   const exportBtn = $("export-btn");
+  const saveBtn2 = $("save-btn2");
+  const exportBtn2 = $("export-btn2");
   const userRoleInfo = $("user-role-info");
   const missingRole = $("missing-role");
   const autoUpdateStatus = $("auto-update-status");
@@ -819,6 +825,8 @@ function removeClass() {
 
   saveBtn.addEventListener('click', saveAttendance);
   exportBtn.addEventListener('click', exportCSV);
+  saveBtn2.addEventListener('click', saveAttendance);
+  exportBtn2.addEventListener('click', exportCSV);
 
   function populateDayDropdown() {
     daySelect.innerHTML = '';
@@ -853,8 +861,17 @@ function buildTable(subjects, existingData = {}) {
 
   // Build header (only selected subject)
   let headerHTML = '<th>Students</th>';
-  headerHTML += `<th class="subject-header">${subjectName}</th>`;
-  tableHeader.innerHTML = headerHTML;
+headerHTML += `
+  <th class="subject-header">
+    ${subjectName}
+    <button class="select-all-btn" 
+            data-subject-index="${subjectIndex}" 
+            onclick="toggleSelectAll(${subjectIndex})">
+      Select All
+    </button>
+  </th>`;
+tableHeader.innerHTML = headerHTML;
+
 
   // Build body rows
   students.forEach(student => {
@@ -877,6 +894,9 @@ function buildTable(subjects, existingData = {}) {
     `;
     tbody.appendChild(row);
   });
+
+  updateSelectAllButtons();
+
 }
 
 
@@ -886,21 +906,21 @@ function buildTable(subjects, existingData = {}) {
 
 
   // Global function for select all buttons (needs to be accessible from onclick)
-  window.toggleSelectAll = function(subjectIndex) {
-    const checkboxes = document.querySelectorAll(`#attendance-body input[type="checkbox"][data-subject-index="${subjectIndex}"]`);
-    const button = document.querySelector(`.select-all-btn[data-subject-index="${subjectIndex}"]`);
-    
-    // Check if all are currently selected
-    const allSelected = Array.from(checkboxes).every(cb => cb.checked);
-    
-    // Toggle all checkboxes
-    checkboxes.forEach(cb => {
-      cb.checked = !allSelected;
-    });
-    
-    // Update button text and style
-    updateSelectAllButton(button, !allSelected);
-  };
+ window.toggleSelectAll = function(subjectIndex) {
+  const checkboxes = document.querySelectorAll(
+    `#attendance-body input[type="checkbox"][data-subject-index="${subjectIndex}"]`
+  );
+  const button = document.querySelector(
+    `.select-all-btn[data-subject-index="${subjectIndex}"]`
+  );
+
+  const allSelected = Array.from(checkboxes).every(cb => cb.checked);
+
+  checkboxes.forEach(cb => cb.checked = !allSelected);
+
+  updateSelectAllButton(button, !allSelected);
+};
+
 
   function updateSelectAllButtons() {
     if (currentRole !== 'teacher') return;
