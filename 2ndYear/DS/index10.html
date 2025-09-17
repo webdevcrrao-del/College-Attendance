@@ -824,8 +824,17 @@ function buildTable(subjects, existingData = {}) {
 
   // Build header (only selected subject)
   let headerHTML = '<th>Students</th>';
-  headerHTML += `<th class="subject-header">${subjectName}</th>`;
-  tableHeader.innerHTML = headerHTML;
+headerHTML += `
+  <th class="subject-header">
+    ${subjectName}
+    <button class="select-all-btn" 
+            data-subject-index="${subjectIndex}" 
+            onclick="toggleSelectAll(${subjectIndex})">
+      Select All
+    </button>
+  </th>`;
+tableHeader.innerHTML = headerHTML;
+
 
   // Build body rows
   students.forEach(student => {
@@ -848,6 +857,9 @@ function buildTable(subjects, existingData = {}) {
     `;
     tbody.appendChild(row);
   });
+
+  updateSelectAllButtons();
+
 }
 
 
@@ -857,21 +869,20 @@ function buildTable(subjects, existingData = {}) {
 
 
   // Global function for select all buttons (needs to be accessible from onclick)
-  window.toggleSelectAll = function(subjectIndex) {
-    const checkboxes = document.querySelectorAll(`#attendance-body input[type="checkbox"][data-subject-index="${subjectIndex}"]`);
-    const button = document.querySelector(`.select-all-btn[data-subject-index="${subjectIndex}"]`);
-    
-    // Check if all are currently selected
-    const allSelected = Array.from(checkboxes).every(cb => cb.checked);
-    
-    // Toggle all checkboxes
-    checkboxes.forEach(cb => {
-      cb.checked = !allSelected;
-    });
-    
-    // Update button text and style
-    updateSelectAllButton(button, !allSelected);
-  };
+ window.toggleSelectAll = function(subjectIndex) {
+  const checkboxes = document.querySelectorAll(
+    `#attendance-body input[type="checkbox"][data-subject-index="${subjectIndex}"]`
+  );
+  const button = document.querySelector(
+    `.select-all-btn[data-subject-index="${subjectIndex}"]`
+  );
+
+  const allSelected = Array.from(checkboxes).every(cb => cb.checked);
+
+  checkboxes.forEach(cb => cb.checked = !allSelected);
+
+  updateSelectAllButton(button, !allSelected);
+};
 
   function updateSelectAllButtons() {
     if (currentRole !== 'teacher') return;
