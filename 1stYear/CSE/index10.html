@@ -588,83 +588,52 @@
   /*************************************
    * Auth state
    *************************************/
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      try {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userDocRef);
-        if (!userSnap.exists()) {
-          currentRole = null;
-          userRoleInfo.textContent = `Signed in as: ${user.email} (UID: ${user.uid})`;
-          missingRole.style.display = '';
-          missingRole.innerHTML = `<strong>No role assigned</strong><br/>Create <code>users/${user.uid}</code> with fields <code>email</code>, <code>role</code> ("teacher" or "viewer"), and <code>studentKey</code> (exactly as in students[]).<br/><br/>
-          <small>If you are an admin, you can try creating here (rules may block):</small>
-          <div style="margin-top:8px">
-            <select id="role-to-create"><option value="viewer">viewer</option><option value="teacher">teacher</option></select>
-            <input id="studentKey-to-create" placeholder="e.g., R23XV1M6701 - Addanki Harshitha" style="min-width:340px"/>
-            <button id="create-role-doc">Create role doc (attempt)</button>
-          </div>`;
-
-          document.getElementById('create-role-doc').addEventListener('click', async () => {
-            const chosen = document.getElementById('role-to-create').value;
-            const skey = document.getElementById('studentKey-to-create').value || null;
-            try {
-              await setDoc(doc(db, 'users', user.uid), { email: user.email, role: chosen, studentKey: skey });
-              missingRole.className = 'success';
-              missingRole.textContent = `Role document created as '${chosen}'. Reloading...`;
-              setTimeout(() => location.reload(), 800);
-            } catch (err) {
-              console.error(err);
-              missingRole.className = 'error';
-              missingRole.innerHTML = `Failed to create role doc: <code>${err.code || err.message}</code><br/>Add the document manually in the Firebase Console.`;
-            }
-          });
-
-          showApp();
-          // 🚀 If user logged in from QR scan, run scan flow immediately
-const urlParams = new URLSearchParams(window.location.search);
-const urlToken = urlParams.get('token');
-
-if (urlToken) {
-  // if already logged in
-  if (auth.currentUser) {
-    handleScanFlow(urlToken);
-  } else {
-    // wait for login
-    const interval = setInterval(() => {
-      if (auth.currentUser) {
-        clearInterval(interval);
-        handleScanFlow(urlToken);
-      }
-    }, 500);
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    currentRole = null;
+    stopAutoUpdate();
+    showLogin();
+    return;
   }
-}
 
+  // User exists
+  const userDocRef = doc(db, 'users', user.uid);
+  const userSnap = await getDoc(userDocRef);
 
-        currentRole = userSnap.data().role;
-        userRoleInfo.textContent = `Signed in as: ${user.email} — role: ${currentRole}`;
-        missingRole.style.display = 'none';
-        loginFeedback.innerHTML = '';
-        showApp();
+  // If user has NO document in "users" collection
+  if (!userSnap.exists()) {
+    currentRole = null;
+    userRoleInfo.textContent = `Signed in as: ${user.email} (UID: ${user.uid})`;
+    missingRole.style.display = '';
+    missingRole.innerHTML = `<strong>No role assigned</strong><br/>Create <code>users/${user.uid}</code> with fields <code>email</code>, <code>role</code> ("teacher" or "viewer"), and <code>studentKey</code>.`;
+    showApp();
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlToken = urlParams.get('token');
-        if (urlToken) {
-          await handleScanFlow(urlToken);
+    // 🔥 process QR scan token even if role doc is missing
+    const urlToken = new URLSearchParams(window.location.search).get("token");
+    if (urlToken) {
+      const interval = setInterval(() => {
+        if (auth.currentUser) {
+          clearInterval(interval);
+          handleScanFlow(urlToken);
         }
-      } catch (err) {
-        console.error('Error fetching user role:', err);
-        loginFeedback.innerHTML = `<div class="error">Failed to fetch role: ${err.message || err.code}</div>`;
-        showLogin();
-      }
-    } else {
-      currentRole = null;
-      userRoleInfo.textContent = '';
-      missingRole.style.display = 'none';
-      stopAutoUpdate();
-      showLogin();
+      }, 500);
     }
-  });
+    return; // ⬅️ MOST IMPORTANT FIX
+  }
+
+  // User DOES have role document
+  currentRole = userSnap.data().role || null;
+  userRoleInfo.textContent = `Signed in as: ${user.email} — role: ${currentRole}`;
+  missingRole.style.display = 'none';
+  showApp();
+
+  // 🚀 If login came from QR scan, run scan after login
+  const urlToken = new URLSearchParams(window.location.search).get("token");
+  if (urlToken) {
+    handleScanFlow(urlToken);
+  }
+});
+
 
   function showLogin() {
     loginSection.classList.remove('hidden');
