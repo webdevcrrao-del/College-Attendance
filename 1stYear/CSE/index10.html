@@ -458,21 +458,7 @@ toggleAutoUpdateBtn.addEventListener('click', () => {
     updateStatusIndicator('error', '🔴 Live Updates Paused');
   }
 });
- toggleAutoUpdateBtn.addEventListener('click', () => {
-    autoUpdateEnabled = !autoUpdateEnabled;
-    
-    if (autoUpdateEnabled) {
-      toggleAutoUpdateBtn.innerHTML = '🔄 Auto-Update: ON';
-      toggleAutoUpdateBtn.style.backgroundColor = '#28a745';
-      startAutoUpdate();
-      updateStatusIndicator('connected', '🟢 Live Updates Active');
-    } else {
-      toggleAutoUpdateBtn.innerHTML = '⏸️ Auto-Update: OFF';
-      toggleAutoUpdateBtn.style.backgroundColor = '#6c757d';
-      stopAutoUpdate();
-      updateStatusIndicator('error', '🔴 Live Updates Paused');
-    }
-  });
+ 
 
   function updateStatusIndicator(status, text) {
     autoUpdateStatus.className = `auto-update-indicator ${status}`;
