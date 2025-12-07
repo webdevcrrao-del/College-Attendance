@@ -406,8 +406,8 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   const missingRole = $("missing-role");
   const autoUpdateStatus = $("auto-update-status");
   const lastUpdatedInfo = $("last-updated-info");
-  const toggleAutoUpdateBtn = $("toggle-auto-update");
-  const toggleAutoUpdateBtnBottom = $("toggle-auto-update-bottom");
+  const toggleAutoUpdateBtn = $("toggle-auto-update-bottom");
+  
 
   // QR session UI
   const qrSessionBox = $("qr-session-box");
@@ -445,10 +445,10 @@ toggleAutoUpdateBtn.addEventListener('click', () => {
 
   toggleAutoUpdateBtn.innerHTML = text;
   toggleAutoUpdateBtn.style.backgroundColor = color;
-  if (toggleAutoUpdateBtnBottom) {
-    toggleAutoUpdateBtnBottom.innerHTML = text;
-    toggleAutoUpdateBtnBottom.style.backgroundColor = color;
-  }
+  // if (toggleAutoUpdateBtnBottom) {
+  //   toggleAutoUpdateBtnBottom.innerHTML = text;
+  //   toggleAutoUpdateBtnBottom.style.backgroundColor = color;
+  // }
 
   // Feature behavior
   if (autoUpdateEnabled) {
