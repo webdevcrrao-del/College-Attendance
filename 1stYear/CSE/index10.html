@@ -239,7 +239,8 @@
 
     </div>
       <div id="qr-box" class="hidden">
-        
+        <div id="scan-status" class="notice" style="display:none; margin-top:10px;"></div>
+
         <div id="qrcode"></div>
         <div>
           <div id="qr-info" class="muted"></div>
@@ -251,10 +252,10 @@
     
 
     <!-- STUDENT: Token detected -->
-    <div id="scan-status" class="notice hidden"></div>
+    <!-- <div id="scan-status" class="notice hidden"></div>
      <h1>Mark Attendance</h1>
   <input type="text" id="qrInput" placeholder="Paste scanned QR content" />
-  <button onclick="markAttendance()">Submit</button>
+  <button onclick="markAttendance()">Submit</button> -->
 
     <div class="table-container">
       <table id="attendance-table">    
@@ -267,11 +268,7 @@
 
     <div class="last-updated" id="last-updated-info"></div>
 
-    <div id="teacher-buttons" class="row">
-  <button id="save-btn2">Save Attendance</button>
-  <button id="export-btn2">Export as CSV</button>
-  <button id="toggle-auto-update-bottom">🔄 Auto-Update: ON</button>
-</div>
+    
 
   </div>
 </div>
