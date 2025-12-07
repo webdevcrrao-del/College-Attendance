@@ -622,13 +622,24 @@
 
           showApp();
           // 🚀 If user logged in from QR scan, run scan flow immediately
-const urlToken = new URLSearchParams(window.location.search).get('token');
-if (urlToken && currentRole === 'viewer') {
-  setTimeout(() => handleScanFlow(urlToken), 700);
+const urlParams = new URLSearchParams(window.location.search);
+const urlToken = urlParams.get('token');
+
+if (urlToken) {
+  // if already logged in
+  if (auth.currentUser) {
+    handleScanFlow(urlToken);
+  } else {
+    // wait for login
+    const interval = setInterval(() => {
+      if (auth.currentUser) {
+        clearInterval(interval);
+        handleScanFlow(urlToken);
+      }
+    }, 500);
+  }
 }
 
-          return;
-        }
 
         currentRole = userSnap.data().role;
         userRoleInfo.textContent = `Signed in as: ${user.email} — role: ${currentRole}`;
