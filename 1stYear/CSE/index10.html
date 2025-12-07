@@ -672,36 +672,40 @@ function updateTableWithChanges(newData) {
     stopAutoUpdate();
   }
 
-  function showApp() {
-    loginSection.classList.add('hidden');
-    attendanceSection.classList.remove('hidden');
+ function showApp() {
+  // Hide login page, show attendance
+  if (loginSection) loginSection.classList.add('hidden');
+  if (attendanceSection) attendanceSection.classList.remove('hidden');
 
-    populateDayDropdown();
-    dateSelect.value = new Date().toISOString().split('T')[0];
-    buildTable(subjectsByDay['Monday']);
-    loadSavedDates();
-    populateSubjectSelect();
+  populateDayDropdown();
+  dateSelect.value = new Date().toISOString().split('T')[0];
+  buildTable(subjectsByDay['Monday']);
+  loadSavedDates();
+  populateSubjectSelect();
 
-    if (currentRole === 'viewer') {
-      addClassSection.style.display = 'none';
-      teacherButtons.style.display = 'none';
-      daySelect.disabled = true;
-      dateSelect.disabled = true;
-      qrSessionBox.style.display = 'none';
-      // Viewers can still benefit from auto-updates
-      toggleAutoUpdateBtn.style.display = '';
-    } else {
-      addClassSection.style.display = '';
-      teacherButtons.style.display = '';
-      daySelect.disabled = false;
-      dateSelect.disabled = false;
-      qrSessionBox.style.display = '';
-      toggleAutoUpdateBtn.style.display = '';
-    }
+  // --------- ROLE BASED UI PROTECTION ----------
+  const isViewer = currentRole === 'viewer';
 
-    // Start auto-update for the current selection
-    startAutoUpdate();
+  if (addClassSection) addClassSection.style.display = isViewer ? 'none' : '';
+  if (teacherButtons) teacherButtons.style.display = isViewer ? 'none' : '';
+  if (qrSessionBox) qrSessionBox.style.display = isViewer ? 'none' : '';
+
+  if (daySelect) daySelect.disabled = isViewer;
+  if (dateSelect) dateSelect.disabled = isViewer;
+
+  // Auto-update toggle visible for both
+  if (toggleAutoUpdateBtn) toggleAutoUpdateBtn.style.display = '';
+
+  // --------- Prevent accidental crashes for viewer QR scan ----------
+  // If viewer scanned QR, do NOT build QR UI for them
+  if (isViewer) {
+    if (qrBox) qrBox.classList.add("hidden");
   }
+
+  // Start auto-update for table
+  startAutoUpdate();
+}
+
 
   /*************************************
    * UI actions (login etc.)
