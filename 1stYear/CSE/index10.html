@@ -1434,8 +1434,13 @@ scanStatus.innerHTML = `
         updatedAt: Date.now()
       });
     }
-startAutoUpdate();
+
 }
+  // Start realtime updates after the page launches (not inside markPresentForStudent)
+setTimeout(() => {
+  startAutoUpdate();
+}, 500);
+
 </script>
 </body>
 </html>
