@@ -621,6 +621,12 @@
           });
 
           showApp();
+          // 🚀 If user logged in from QR scan, run scan flow immediately
+const urlToken = new URLSearchParams(window.location.search).get('token');
+if (urlToken && currentRole === 'viewer') {
+  setTimeout(() => handleScanFlow(urlToken), 700);
+}
+
           return;
         }
 
@@ -1419,12 +1425,13 @@
     }
   }
 
-  (async function immediateTokenCheck() {
-    const token = new URLSearchParams(window.location.search).get('token');
-    if (token && auth.currentUser) {
-      await handleScanFlow(token);
-    }
-  })();
+ (async function immediateTokenCheck() {
+  const token = new URLSearchParams(window.location.search).get('token');
+  if (token && auth.currentUser) {
+    await handleScanFlow(token);
+  }
+})();
+
 </script>
 </body>
 </html>
