@@ -940,11 +940,14 @@ if (urlToken && currentRole === 'viewer') {
     getDoc(doc(db, 'attendance', docId)).then(docSnap => {
       const subjects = subjectsByDay[day] || [];
       if (docSnap.exists()) {
-        const data = docSnap.data();
-        buildTable(subjects, data.data || {});
-      } else {
-        buildTable(subjects, {});
-      }
+  const saved = docSnap.data();
+  const subjects = saved.subjects || (subjectsByDay[day] || []);
+  buildTable(subjects, saved.data || {});
+} else {
+  const subjects = subjectsByDay[day] || [];
+  buildTable(subjects, {});
+}
+
     }).catch(error => {
       console.error('Error fetching data:', error);
       const subjects = subjectsByDay[day] || [];
@@ -1430,6 +1433,7 @@ scanStatus.innerHTML = `
         updatedAt: Date.now()
       });
     }
+    startAutoUpdate();
   }
 
  
