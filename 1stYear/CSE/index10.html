@@ -4,128 +4,74 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Attendance System For CSE(DS)</title>
+
+  <!-- (Only used for static QR if ever needed) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background-color: #eef2f7; margin: 0; padding: 0; }
-    header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
-    .container { max-width: 1100px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    h2 { margin-top: 0; color: #2c3e50; }
-    .hidden { display: none; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-    th { background-color: #34495e; color: white; position: relative; }
-    tr:nth-child(even) { background-color: #f8f9fb; }
-    tr:hover { background-color: #f1f5f9; }
-    button { margin: 10px 5px; padding: 10px 18px; border: none; border-radius: 4px; background-color: #3498db; color: white; cursor: pointer; }
-    button:hover { background-color: #2980b9; }
-    .danger-btn { background-color: #e74c3c; }
-    .danger-btn:hover { background-color: #c0392b; }
-    select, input[type="text"], input[type="password"], input[type="date"], input[type="number"] { padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; }
-    input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
-    .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    .muted { color:#6b7280; font-size: 0.95rem; }
-    .notice { background:#fff3cd; color:#856404; border:1px solid #ffeeba; padding:10px; border-radius:6px; margin:10px 0; }
-    .success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; padding:10px; border-radius:6px; margin:10px 0; }
-    .error { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; padding:10px; border-radius:6px; margin:10px 0; }
-    small { display:block; color:#6b7280 }
-    #qr-box { display:flex; gap:16px; align-items:flex-start; }
-    #qrcode { padding:8px; background:#fff; border:1px solid #e5e7eb; border-radius:8px; }
-    code.kbd { background:#111827; color:#f9fafb; padding:2px 6px; border-radius:4px; }
+    body { font-family: 'Segoe UI', sans-serif; background:#eef2f7; margin:0; }
+    header { background:#2c3e50; color:#fff; padding:20px; text-align:center; }
+    .container { max-width:1100px; margin:40px auto; background:#fff; padding:30px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+    h2 { margin-top:0; color:#2c3e50; }
+    .hidden { display:none; }
+    table { border-collapse:collapse; width:100%; margin-top:20px; }
+    th,td { border:1px solid #ddd; padding:10px; text-align:center; }
+    th { background:#34495e; color:#fff; position:relative; }
+    tr:nth-child(even){ background:#f8f9fb; }
+    tr:hover{ background:#f1f5f9; }
+    button { margin:10px 5px; padding:10px 18px; border:none; border-radius:4px; background:#3498db; color:#fff; cursor:pointer; }
+    button:hover{ background:#2980b9; }
+    .danger-btn{ background:#e74c3c; }
+    .danger-btn:hover{ background:#c0392b; }
+    select,input[type="text"],input[type="password"],input[type="date"],input[type="number"]{ padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:4px; }
+    input[type="checkbox"]{ width:20px; height:20px; cursor:pointer; }
+    .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .muted{ color:#6b7280; font-size:0.95rem; }
+    .notice{ background:#fff3cd; color:#856404; border:1px solid #ffeeba; padding:10px; border-radius:6px; margin:10px 0; }
+    .success{ background:#d4edda; color:#155724; border:1px solid #c3e6cb; padding:10px; border-radius:6px; margin:10px 0; }
+    .error{ background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; padding:10px; border-radius:6px; margin:10px 0; }
+    small{ display:block; color:#6b7280; }
+    #qr-box{ display:flex; gap:16px; align-items:flex-start; }
+    #qrcode{ padding:8px; background:#fff; border:1px solid #e5e7eb; border-radius:8px; }
+    code.kbd{ background:#111827; color:#f9fafb; padding:2px 6px; border-radius:4px; }
 
-    /* Auto-update indicators */
-    .auto-update-indicator { 
-      position: fixed; 
-      top: 20px; 
-      right: 20px; 
-      z-index: 1000; 
-      padding: 8px 16px; 
-      border-radius: 20px; 
-      font-size: 0.85rem;
-      font-weight: 500;
+    /* Auto-update indicator */
+    .auto-update-indicator{
+      position:fixed; top:20px; right:20px; z-index:1000;
+      padding:8px 16px; border-radius:20px; font-size:0.85rem; font-weight:500;
     }
-    .auto-update-indicator.connected { 
-      background: #d4edda; 
-      color: #155724; 
-      border: 1px solid #c3e6cb; 
-    }
-    .auto-update-indicator.updating { 
-      background: #fff3cd; 
-      color: #856404; 
-      border: 1px solid #ffeeba; 
-    }
-    .auto-update-indicator.error { 
-      background: #f8d7da; 
-      color: #721c24; 
-      border: 1px solid #f5c6cb; 
-    }
-    
-    .pulse-animation {
-      animation: pulse 0.5s ease-in-out;
-    }
-    
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.02); }
-      100% { transform: scale(1); }
-    }
-    
-    .updated-cell {
-      background-color: #d4edda !important;
-      transition: background-color 2s ease-out;
-    }
-    
-    .last-updated {
-      font-size: 0.8rem;
-      color: #6b7280;
-      margin-top: 10px;
-    }
+    .auto-update-indicator.connected{ background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+    .auto-update-indicator.updating{ background:#fff3cd; color:#856404; border:1px solid #ffeeba; }
+    .auto-update-indicator.error{ background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
 
-    /* Select All button styling */
-    .select-all-btn {
-      background: #3498db;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      margin-left: 5px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
+    .pulse-animation{ animation:pulse 0.5s ease-in-out; }
+    @keyframes pulse{ 0%{transform:scale(1);} 50%{transform:scale(1.02);} 100%{transform:scale(1);} }
 
-    .select-all-btn:hover {
-      background: #2980b9;
-    }
+    .updated-cell{ background:#d4edda !important; transition:background-color 2s ease-out; }
+    .last-updated{ font-size:0.8rem; color:#6b7280; margin-top:10px; }
 
-    .select-all-btn:active {
-      background: #1f5c87;
-    }
+    /* Select all */
+    .select-all-btn{ background:#3498db; color:#fff; border:none; border-radius:6px; margin-left:5px; font-size:12px; cursor:pointer; transition:.2s; }
+    .select-all-btn:hover{ background:#2980b9; }
+    .select-all-btn.deselect{ background:#e67e22; }
+    .select-all-btn.deselect:hover{ background:#d35400; }
+    .subject-header{ white-space:nowrap; position:relative; padding-bottom:40px; }
 
-    .subject-header {
-      white-space: nowrap;
-    }
+    .table-container{ position:relative; padding-bottom:45px; }
 
-    .select-all-btn.deselect {
-      background-color: #e67e22;
+    /* Toast */
+    #toast{
+      position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+      background:#333; color:#fff; padding:10px 18px; border-radius:20px;
+      font-size:0.9rem; opacity:0; pointer-events:none; z-index:2000;
+      transition:opacity .3s, transform .3s;
     }
-    
-    .select-all-btn.deselect:hover {
-      background-color: #d35400;
-    }
-
-    /* Add extra space for select all buttons */
-    .table-container {
-      position: relative;
-      padding-bottom: 45px;
-    }
-
-    /* Style for subject headers */
-    .subject-header {
-      position: relative;
-      padding-bottom: 40px;
-    }
+    #toast.show{ opacity:1; transform:translateX(-50%) translateY(-10px); }
+    #toast.success{ background:#16a34a; }
+    #toast.error{ background:#dc2626; }
   </style>
 </head>
 <body>
@@ -133,10 +79,11 @@
   <h1 style="margin:0;">Attendance System For CSE(DS)</h1>
 </header>
 
-<!-- Auto-update status indicator -->
-<div id="auto-update-status" style="display: none;" class="auto-update-indicator connected">
+<div id="auto-update-status" style="display:none;" class="auto-update-indicator connected">
   🟢 Live Updates Active
 </div>
+
+<div id="toast"></div>
 
 <div class="container">
 
@@ -145,8 +92,12 @@
     <h2>Secure Login</h2>
     <p class="muted">Sign in with the email that was added to <strong>Firebase Authentication</strong>.</p>
     <div class="row">
-      <label style="min-width:280px">Email:<br/><input type="text" id="username" placeholder="Enter email" autocomplete="username" /></label>
-      <label style="min-width:280px">Password:<br/><input type="password" id="password" placeholder="Enter password" autocomplete="current-password" /></label>
+      <label style="min-width:280px">Email:<br/>
+        <input type="text" id="username" placeholder="Enter email" autocomplete="username" />
+      </label>
+      <label style="min-width:280px">Password:<br/>
+        <input type="password" id="password" placeholder="Enter password" autocomplete="current-password" />
+      </label>
     </div>
     <div class="row">
       <button id="login-btn">Login</button>
@@ -156,39 +107,36 @@
     <div id="login-troubleshoot" class="notice" style="display:none;">
       <strong>Troubleshooting tips</strong>
       <ul>
-        <li>Make sure you are using the <em>exact</em> email created in Authentication.</li>
-        <li>If you get <code>auth/user-not-found</code>, the email is not registered (add user in Firebase Console → Authentication).</li>
-        <li>If you get <code>auth/wrong-password</code>, use the <em>Forgot password</em> button to reset it.</li>
-        <li>If you still see errors, check the browser console and the Firebase Authentication &amp; Firestore rules.</li>
+        <li>Use the <em>exact</em> email created in Authentication.</li>
+        <li>If you get <code>auth/user-not-found</code>, add the email in Firebase Authentication.</li>
+        <li>If you get <code>auth/wrong-password</code>, use <em>Forgot password</em>.</li>
       </ul>
     </div>
   </div>
 
   <!-- APP -->
   <div id="attendance-section" class="hidden">
-
     <div id="user-role-info" class="muted" style="margin-bottom:10px"></div>
     <div id="missing-role" class="error" style="display:none;"></div>
 
     <div class="row">
       <label>Saved Records: <select required id="saved-dates"></select></label>
       <button id="logout-btn" class="danger-btn">Logout</button>
-      <button onclick="window.location.href='private.html'" 
-          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
+      <button onclick="window.location.href='private.html'"
+              style="padding:10px 18px; border:none; border-radius:8px; background:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
         Click to Check your Attendance
       </button>
     </div>
 
-    <!-- TEACHER: Start QR Session -->
+    <!-- TEACHER: QR Session -->
     <div id="qr-session-box" class="notice" style="display:none; margin-top:12px;">
-      <div class="row" style="justify-content: space-between; align-items: center;">
-        <h2 style="margin: 0;">Instructions to Mark Attendance:</h2>
+      <div class="row" style="justify-content:space-between; align-items:center;">
+        <h2 style="margin:0;">Instructions to Mark Attendance:</h2>
       </div>
-    
       <p>
-        Step1: Select a Saved Record. If the required record is not found, Select Day, Date and Subject. <br>
-        Step2: Start taking attendance by ticking the boxes. If the Required Subject is not found then add the subject.<br> 
-        Step3(Important): Click "Save Attendance" to save the record.<br>     
+        Step 1: Select Day, Date and Subject (or load a saved record). <br>
+        Step 2: Start taking attendance or start QR session. <br>
+        Step 3: Click <b>Save Attendance</b>.
       </p>
 
       <div class="row">
@@ -196,18 +144,18 @@
         <label>Date: <input type="date" id="date-select"></label>
         <label>Subject: <select id="subject-select"></select></label>
 
-        <button onclick="window.location.href='students.html'" 
-          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
+        <button onclick="window.location.href='students.html'"
+          style="padding:10px 18px; border:none; border-radius:8px; background:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
           Student Attendance Overview
         </button>
 
-        <button onclick="window.location.href='sem.html'" 
-          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
+        <button onclick="window.location.href='sem.html'"
+          style="padding:10px 18px; border:none; border-radius:8px; background:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
           Classes taken in the Semester
         </button>
 
-        <button onclick="window.location.href='absent.html'" 
-          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
+        <button onclick="window.location.href='absent.html'"
+          style="padding:10px 18px; border:none; border-radius:8px; background:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
           Check Absent Students
         </button>
 
@@ -224,7 +172,6 @@
         <button id="remove-class-btn" class="danger-btn">Remove Selected Subject</button>
       </div>
 
-      <!-- TOP teacher buttons (C: buttons in both places) -->
       <div id="teacher-buttons-top" class="row">
         <button id="save-btn-top">Save Attendance</button>
         <button id="export-btn-top">Export as CSV</button>
@@ -235,54 +182,40 @@
         <div id="qrcode"></div>
         <div>
           <div id="qr-info" class="muted"></div>
-          <small>Students: open your camera, scan the QR, tap the link, allow location, done.</small>
+          <small>Students: scan the QR, allow location, done.</small>
         </div>
       </div>
 
-      <!-- Scan status (needed for geolocation + QR flow) -->
       <div id="scan-status" class="notice hidden"></div>
     </div>
 
     <div class="table-container">
-      <table id="attendance-table">    
-        <thead>
-          <tr id="table-header"></tr>
-        </thead>
+      <table id="attendance-table">
+        <thead><tr id="table-header"></tr></thead>
         <tbody id="attendance-body"></tbody>
       </table>
     </div>
 
     <div class="last-updated" id="last-updated-info"></div>
 
-    <!-- BOTTOM teacher buttons (C: buttons in both places) -->
     <div id="teacher-buttons-bottom" class="row">
       <button id="save-btn-bottom">Save Attendance</button>
       <button id="export-btn-bottom">Export as CSV</button>
       <button id="toggle-auto-update-bottom">🔄 Auto-Update: ON</button>
     </div>
-
   </div>
 </div>
 
-<!-- QR library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-MnQnQf9O9Vf6xNmKxN0h7Qb0sN7c5F6aFqbKp1q5mHcK2lYt8nqf3zZbX2p8n2l0J3O7yZQ0Nw7Qx9mDxQ8Zig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+        integrity="sha512-MnQnQf9O9Vf6xNmKxN0h7Qb0sN7c5F6aFqbKp1q5mHcK2lYt8nqf3zZbX2p8n2l0J3O7yZQ0Nw7Qx9mDxQ8Zig=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script type="module">
-  // Replace with your PC's local IP
-  const pcIP = "192.168.1.5"; // Change to your actual IPv4 address
-  const port = 5500;
-  const filePath = "index.html"; // Your attendance page
-
-  const qrData = `http://${pcIP}:${port}/${filePath}`;
-  // new QRCode(document.getElementById("qrcode"), qrData); // uncomment to generate static QR for page
-
-  /*************************************
-   * Firebase SDKs (v9 modular)
-   *************************************/
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
   import { getFirestore, doc, setDoc, getDoc, getDocs, collection, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
   import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
+  /* ---------- CONFIG ---------- */
   const firebaseConfig = {
     apiKey: "AIzaSyBheBBqf__GHWeD7DaLQzIjJDu3n-7srY8",
     authDomain: "college-attendance-435d2.firebaseapp.com",
@@ -292,21 +225,14 @@
     appId: "1:322925751663:web:4e2f75c2041cb88988cc9a",
     measurementId: "G-QNJ7HWYS8L"
   };
-
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  const db  = getFirestore(app);
   const auth = getAuth(app);
 
-  /*************************************
-   * CONFIG: classroom defaults
-   *************************************/
-  let CLASS_LAT = 17.4521792;   
+  let CLASS_LAT = 17.4521792;
   let CLASS_LON = 78.3418871;
-  let CLASS_RADIUS_METERS_DEFAULT = 35;
+  const CLASS_RADIUS_METERS_DEFAULT = 35;
 
-  /*************************************
-   * Data
-   *************************************/
   const students = [
     "BT25CS01 - BHAGAM JAITHRA PRANAV",
     "BT25CS02 - SAGI VEDESH",
@@ -348,17 +274,15 @@
   ];
 
   const subjectsByDay = {
-    'Monday': ['M&C', 'English Theory', 'PPS Theory', 'EDC','Sports/Library'],
-    'Tuesday': ['M&C', 'EC', 'English Theory', 'English-Lab'],
-    'Wednesday': ['M&C', 'EC', 'Engineering Workshop', 'IPR'],
-    'Thursday': ['PPS-Lab', 'DA-Lab'],
-    'Friday': ['M&C', 'PPS Theory','EDC','EDC/M&C Assignments'],
-    'Saturday': ['']
+    Monday:    ['M&C', 'English Theory', 'PPS Theory', 'EDC','Sports/Library'],
+    Tuesday:   ['M&C', 'EC', 'English Theory', 'English-Lab'],
+    Wednesday: ['M&C', 'EC', 'Engineering Workshop', 'IPR'],
+    Thursday:  ['PPS-Lab', 'DA-Lab'],
+    Friday:    ['M&C', 'PPS Theory','EDC','EDC/M&C Assignments'],
+    Saturday:  ['']
   };
 
-  /*************************************
-   * DOM
-   *************************************/
+  /* ---------- DOM helpers ---------- */
   const $ = id => document.getElementById(id);
 
   const loginSection = $("login-section");
@@ -381,16 +305,12 @@
   const missingRole = $("missing-role");
   const autoUpdateStatus = $("auto-update-status");
   const lastUpdatedInfo = $("last-updated-info");
-
-  // New distinct buttons (Option C)
   const saveBtnTop = $("save-btn-top");
   const saveBtnBottom = $("save-btn-bottom");
   const exportBtnTop = $("export-btn-top");
   const exportBtnBottom = $("export-btn-bottom");
   const toggleAutoUpdateTop = $("toggle-auto-update");
   const toggleAutoUpdateBottom = $("toggle-auto-update-bottom");
-
-  // QR session UI
   const qrSessionBox = $("qr-session-box");
   const subjectSelect = $("subject-select");
   const radiusInput = $("radius-input");
@@ -401,338 +321,242 @@
   const qrBox = $("qr-box");
   const qrInfo = $("qr-info");
   const scanStatus = $("scan-status");
+  const toastEl = $("toast");
 
-  let currentRole = null; // 'teacher' | 'viewer'
-  let activeSessionToken = null;
-  let activeSessionRef = null;
-  let qrcode = null;
-
-  /*************************************
-   * AUTO-UPDATE SYSTEM
-   *************************************/
+  let currentRole = null; // "teacher" | "viewer" | null
   let autoUpdateEnabled = true;
   let currentDocListener = null;
-  let currentAttendanceDoc = null;
+  let activeSessionToken = null;
+  let autoExpireTimeout = null;
+  let qrcode = null;
 
-  function updateStatusIndicator(status, text) {
+  /* ---------- Toast ---------- */
+  function showToast(msg, type="success", duration=3500){
+    if(!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.className = "";
+    toastEl.classList.add(type === "error" ? "error" : "success");
+    toastEl.classList.add("show");
+    setTimeout(()=>{ toastEl.classList.remove("show"); }, duration);
+  }
+
+  /* ---------- Auto-update ---------- */
+  function updateStatusIndicator(status, text){
     autoUpdateStatus.style.display = 'block';
     autoUpdateStatus.className = `auto-update-indicator ${status}`;
     autoUpdateStatus.textContent = text;
-    
-    if (status === 'updating') {
-      setTimeout(() => {
-        if (autoUpdateEnabled) {
-          updateStatusIndicator('connected', '🟢 Live Updates Active');
-        }
-      }, 3000);
-    }
   }
 
-  function syncAutoUpdateButtons() {
+  function syncAutoUpdateButtons(){
     const textOn  = '🔄 Auto-Update: ON';
     const textOff = '⏸️ Auto-Update: OFF';
-
     const text  = autoUpdateEnabled ? textOn : textOff;
     const color = autoUpdateEnabled ? '#28a745' : '#6c757d';
-
-    if (toggleAutoUpdateTop) {
-      toggleAutoUpdateTop.innerHTML = text;
-      toggleAutoUpdateTop.style.backgroundColor = color;
-    }
-    if (toggleAutoUpdateBottom) {
-      toggleAutoUpdateBottom.innerHTML = text;
-      toggleAutoUpdateBottom.style.backgroundColor = color;
-    }
-
-    if (autoUpdateEnabled) {
-      updateStatusIndicator('connected', '🟢 Live Updates Active');
-    } else {
-      updateStatusIndicator('error', '🔴 Auto-update paused — table will not refresh automatically.');
-    }
+    if (toggleAutoUpdateTop){ toggleAutoUpdateTop.textContent = text; toggleAutoUpdateTop.style.backgroundColor = color; }
+    if (toggleAutoUpdateBottom){ toggleAutoUpdateBottom.textContent = text; toggleAutoUpdateBottom.style.backgroundColor = color; }
+    if (autoUpdateEnabled) updateStatusIndicator('connected','🟢 Live Updates Active');
+    else updateStatusIndicator('error','🔴 Auto-update paused — table will not refresh automatically.');
   }
 
-  function toggleAutoUpdate() {
-    autoUpdateEnabled = !autoUpdateEnabled;
-    syncAutoUpdateButtons();
-
-    if (autoUpdateEnabled) {
-      startAutoUpdate();
-    } else {
-      stopAutoUpdate();
-    }
+  function stopAutoUpdate(){
+    if (currentDocListener){ currentDocListener(); currentDocListener = null; }
   }
 
-  function startAutoUpdate() {
+  function startAutoUpdate(){
     if (!autoUpdateEnabled) return;
-    
     const day = daySelect.value;
     const date = dateSelect.value;
     if (!day || !date) return;
-    
-    stopAutoUpdate(); // Clean up any existing listener
-    
+    stopAutoUpdate();
     const docId = `${day}_${date}`;
-    currentAttendanceDoc = docId;
-
-    try {
+    try{
       currentDocListener = onSnapshot(
-        doc(db, 'attendance', docId),
-        (docSnapshot) => {
+        doc(db,'attendance',docId),
+        snap=>{
           if (!autoUpdateEnabled) return;
-          
-          updateStatusIndicator('updating', '🔄 Updating...');
-          
-          if (docSnapshot.exists()) {
-            const newData = docSnapshot.data();
-            
-            if (newData.data) {
-              const processedData = {};
-              for (const [student, attendance] of Object.entries(newData.data)) {
-                if (Array.isArray(attendance)) {
-                  processedData[student] = attendance;
-                } else {
-                  processedData[student] = new Array((newData.subjects || []).length).fill(false);
-                }
+          updateStatusIndicator('updating','🔄 Updating...');
+          if (snap.exists()){
+            const newData = snap.data();
+            if (newData.data){
+              const processed = {};
+              for (const [student,att] of Object.entries(newData.data)){
+                processed[student] = Array.isArray(att) ? att : new Array((newData.subjects||[]).length).fill(false);
               }
-              updateTableWithChanges({...newData, data: processedData});
+              updateTableWithChanges({...newData,data:processed});
             } else {
               updateTableWithChanges(newData);
             }
-            
-            const lastUpdated = newData.updatedAt ? new Date(newData.updatedAt).toLocaleString() : 'Unknown';
-            lastUpdatedInfo.textContent = `Last updated: ${lastUpdated}`;
-            
-            const table = $('attendance-table');
-            table.classList.add('pulse-animation');
-            setTimeout(() => table.classList.remove('pulse-animation'), 500);
+            const lu = newData.updatedAt ? new Date(newData.updatedAt).toLocaleString() : 'Unknown';
+            lastUpdatedInfo.textContent = `Last updated: ${lu}`;
+            const tableEl = $('attendance-table');
+            tableEl.classList.add('pulse-animation');
+            setTimeout(()=>tableEl.classList.remove('pulse-animation'),500);
           } else {
             const subjects = subjectsByDay[day] || [];
             buildTable(subjects);
             lastUpdatedInfo.textContent = 'No data saved yet';
           }
-          
-          setTimeout(() => {
-            if (autoUpdateEnabled) {
-              updateStatusIndicator('connected', '🟢 Live Updates Active');
-            }
-          }, 1000);
+          setTimeout(()=>{ if (autoUpdateEnabled) updateStatusIndicator('connected','🟢 Live Updates Active'); },1000);
         },
-        (error) => {
-          console.error('Auto-update listener error:', error);
-          updateStatusIndicator('error', '🔴 Connection Error');
-          
-          setTimeout(() => {
-            if (autoUpdateEnabled) {
-              startAutoUpdate();
-            }
-          }, 5000);
+        err=>{
+          console.error('Auto-update error',err);
+          updateStatusIndicator('error','🔴 Connection Error');
+          setTimeout(()=>{ if (autoUpdateEnabled) startAutoUpdate(); },5000);
         }
       );
-    } catch (error) {
-      console.error('Failed to start auto-update:', error);
-      updateStatusIndicator('error', '🔴 Failed to Start Updates');
+    }catch(err){
+      console.error('Failed to start auto-update',err);
+      updateStatusIndicator('error','🔴 Failed to Start Updates');
     }
   }
 
-  function stopAutoUpdate() {
-    if (currentDocListener) {
-      currentDocListener();
-      currentDocListener = null;
-    }
-  }
-
-  function updateTableWithChanges(newData) {
-    const subjectIndex = parseInt(subjectSelect.value, 10);
+  function updateTableWithChanges(newData){
+    const subjectIndex = parseInt(subjectSelect.value,10);
     const selectedSubject = (subjectsByDay[daySelect.value] || [])[subjectIndex];
     if (!selectedSubject) return;
-
-    document.querySelectorAll('#attendance-body tr').forEach(row => {
+    document.querySelectorAll('#attendance-body tr').forEach(row=>{
       const student = row.cells[0].textContent;
       const checkbox = row.cells[1].querySelector('input[type="checkbox"]');
-      
-      if (newData.data && newData.data[student] && Array.isArray(newData.data[student])) {
-        if (subjectIndex < newData.data[student].length) {
-          checkbox.checked = newData.data[student][subjectIndex] || false;
-        } else {
-          checkbox.checked = false;
-        }
-        
+      if (newData.data && newData.data[student] && Array.isArray(newData.data[student])){
+        checkbox.checked = !!newData.data[student][subjectIndex];
         const cell = checkbox.parentElement;
         cell.classList.add('updated-cell');
-        setTimeout(() => cell.classList.remove('updated-cell'), 2000);
+        setTimeout(()=>cell.classList.remove('updated-cell'),2000);
       }
     });
   }
 
-  // Start auto-update when day/date changes
-  daySelect.addEventListener('change', () => { 
-    populateSubjectSelect(); 
-    startAutoUpdate();
-  });
-  
-  dateSelect.addEventListener('change', () => { 
-    populateSubjectSelect(); 
-    startAutoUpdate();
-  });
+  function toggleAutoUpdate(){
+    autoUpdateEnabled = !autoUpdateEnabled;
+    syncAutoUpdateButtons();
+    if (autoUpdateEnabled) startAutoUpdate();
+    else stopAutoUpdate();
+  }
 
-  savedDates.addEventListener('change', () => {
-    const recordId = savedDates.value;
-    if (!recordId) return;
-    const [day, date] = recordId.split('_');
+  daySelect.addEventListener('change',()=>{ populateSubjectSelect(); startAutoUpdate(); });
+  dateSelect.addEventListener('change',()=>{ populateSubjectSelect(); startAutoUpdate(); });
+  savedDates.addEventListener('change', ()=>{
+    const id = savedDates.value;
+    if (!id) return;
+    const [day,date] = id.split('_');
     daySelect.value = day;
     dateSelect.value = date;
     populateSubjectSelect();
     startAutoUpdate();
   });
 
-  /*************************************
-   * Auth state
-   *************************************/
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    currentRole = null;
-    stopAutoUpdate();
-    showLogin();
-    return;
-  }
-
-  // User exists
-  const userDocRef = doc(db, 'users', user.uid);
-  const userSnap = await getDoc(userDocRef);
-
-  // If user has NO document in "users" collection
-  if (!userSnap.exists()) {
-    currentRole = null;
-    userRoleInfo.textContent = `Signed in as: ${user.email} (UID: ${user.uid})`;
-    missingRole.style.display = '';
-    missingRole.innerHTML = `<strong>No role assigned</strong><br/>Create <code>users/${user.uid}</code> with fields <code>email</code>, <code>role</code> ("teacher" or "viewer"), and <code>studentKey</code>.`;
-    showApp();
-
-    // 🔥 process QR scan token even if role doc is missing
-    const urlToken = new URLSearchParams(window.location.search).get("token");
-    if (urlToken) {
-      const interval = setInterval(() => {
-        if (auth.currentUser) {
-          clearInterval(interval);
-          handleScanFlow(urlToken);
-        }
-      }, 500);
+  /* ---------- Auth state ---------- */
+  onAuthStateChanged(auth, async (user)=>{
+    if (!user){
+      currentRole = null;
+      stopAutoUpdate();
+      showLogin();
+      return;
     }
-    return; // ⬅️ MOST IMPORTANT FIX
-  }
 
-  // User DOES have role document
-  currentRole = userSnap.data().role || null;
-  userRoleInfo.textContent = `Signed in as: ${user.email} — role: ${currentRole}`;
-  missingRole.style.display = 'none';
-  showApp();
+    const userDocRef = doc(db,'users',user.uid);
+    const snap = await getDoc(userDocRef);
 
-  // 🚀 If login came from QR scan, run scan after login
-  const urlToken = new URLSearchParams(window.location.search).get("token");
-  if (urlToken) {
-    handleScanFlow(urlToken);
-  }
-});
+    if (!snap.exists()){
+      currentRole = null;
+      userRoleInfo.textContent = `Signed in as: ${user.email} (UID: ${user.uid})`;
+      missingRole.style.display = '';
+      missingRole.innerHTML = `<strong>No role assigned</strong><br/>Create <code>users/${user.uid}</code> with fields <code>email</code>, <code>role</code> ("teacher" or "viewer"), and <code>studentKey</code>.`;
+      showApp();
+    } else {
+      currentRole = snap.data().role || null;
+      userRoleInfo.textContent = `Signed in as: ${user.email} — role: ${currentRole}`;
+      missingRole.style.display = 'none';
+      showApp();
+    }
 
+    const urlToken = new URLSearchParams(window.location.search).get("token");
+    if (urlToken){
+      handleScanFlow(urlToken);
+    }
+  });
 
-  function showLogin() {
+  function showLogin(){
     loginSection.classList.remove('hidden');
     attendanceSection.classList.add('hidden');
     loginTroubleshoot.style.display = 'none';
-    stopAutoUpdate();
   }
 
-  function showApp() {
-    if (loginSection) loginSection.classList.add('hidden');
-    if (attendanceSection) attendanceSection.classList.remove('hidden');
-
+  function showApp(){
+    loginSection.classList.add('hidden');
+    attendanceSection.classList.remove('hidden');
     populateDayDropdown();
     dateSelect.value = new Date().toISOString().split('T')[0];
     loadSavedDates();
     populateSubjectSelect();
-
-    if (subjectSelect.options.length > 0) {
-      subjectSelect.value = "0";
-    }
-
+    if (subjectSelect.options.length>0) subjectSelect.value="0";
     const subjects = subjectsByDay[daySelect.value] || [];
     buildTable(subjects);
 
     const isViewer = currentRole === 'viewer';
-
-    if (addClassSection) addClassSection.style.display = isViewer ? 'none' : '';
-    if (teacherButtonsTop) teacherButtonsTop.style.display = isViewer ? 'none' : '';
-    if (teacherButtonsBottom) teacherButtonsBottom.style.display = isViewer ? 'none' : '';
-    if (qrSessionBox) qrSessionBox.style.display = isViewer ? 'none' : '';
-    if (daySelect) daySelect.disabled = isViewer;
-    if (dateSelect) dateSelect.disabled = isViewer;
-
-    if (toggleAutoUpdateTop) toggleAutoUpdateTop.style.display = '';
-    if (toggleAutoUpdateBottom) toggleAutoUpdateBottom.style.display = '';
-
-    if (isViewer) {
-      if (qrBox) qrBox.classList.add("hidden");
-    }
-
+    addClassSection.style.display = isViewer ? 'none' : '';
+    teacherButtonsTop.style.display = isViewer ? 'none' : '';
+    teacherButtonsBottom.style.display = isViewer ? 'none' : '';
+    qrSessionBox.style.display = isViewer ? 'none' : '';
+    daySelect.disabled = isViewer;
+    dateSelect.disabled = isViewer;
+    if (isViewer) qrBox.classList.add('hidden');
     syncAutoUpdateButtons();
     startAutoUpdate();
   }
 
-  /*************************************
-   * UI actions (login etc.)
-   *************************************/
-  loginBtn.addEventListener('click', async () => {
-    const email = (document.getElementById('username').value || '').trim();
-    const pass = (document.getElementById('password').value || '').trim();
-
-    if (!email || !pass) {
+  /* ---------- Login UI ---------- */
+  loginBtn.addEventListener('click',async ()=>{
+    const email = ($("username").value||"").trim();
+    const pass  = ($("password").value||"").trim();
+    if (!email || !pass){
       loginTroubleshoot.style.display = '';
       loginFeedback.innerHTML = `<div class="error">Please enter both email and password.</div>`;
       return;
     }
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
       loginFeedback.innerHTML = `<div class="error">Please enter a valid email address.</div>`;
       return;
     }
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
+    try{
+      await signInWithEmailAndPassword(auth,email,pass);
       loginFeedback.innerHTML = `<div class="success">Signed in successfully.</div>`;
       loginTroubleshoot.style.display = 'none';
-    } catch (e) {
-      console.error('firebase auth error:', e);
+    }catch(e){
+      console.error('auth error',e);
       loginTroubleshoot.style.display = '';
-      const code = e.code || e.message || 'unknown';
-      let message = '';
-      switch (code) {
-        case 'auth/invalid-email': message = 'Invalid email format.'; break;
-        case 'auth/user-disabled': message = 'This user account has been disabled.'; break;
-        case 'auth/user-not-found': message = 'No user found for this email.'; break;
+      const code = e.code || 'unknown';
+      let msg;
+      switch(code){
+        case 'auth/invalid-email': msg='Invalid email format.'; break;
+        case 'auth/user-disabled': msg='User account disabled.'; break;
+        case 'auth/user-not-found': msg='No user found.'; break;
         case 'auth/wrong-password':
-        case 'auth/invalid-login-credentials': message = 'Wrong password.'; break;
-        case 'auth/too-many-requests': message = 'Too many failed attempts. Try again later.'; break;
-        default: message = e.message || String(e);
+        case 'auth/invalid-login-credentials': msg='Wrong password.'; break;
+        case 'auth/too-many-requests': msg='Too many attempts. Try later.'; break;
+        default: msg=e.message||String(e);
       }
-      loginFeedback.innerHTML = `<div class="error"><strong>Sign-in failed</strong>: ${message}<br/><small>Error code: ${code}</small></div>`;
+      loginFeedback.innerHTML = `<div class="error"><strong>Sign-in failed</strong>: ${msg}<br/><small>Error code: ${code}</small></div>`;
     }
   });
 
-  forgotBtn.addEventListener('click', async () => {
-    const email = (document.getElementById('username').value || '').trim();
-    if (!email) {
+  forgotBtn.addEventListener('click',async ()=>{
+    const email = ($("username").value||"").trim();
+    if (!email){
       loginFeedback.innerHTML = `<div class="notice">Enter your email and click "Forgot password".</div>`;
       return;
     }
-    try {
-      await sendPasswordResetEmail(auth, email);
+    try{
+      await sendPasswordResetEmail(auth,email);
       loginFeedback.innerHTML = `<div class="success">Password reset email sent to ${email}.</div>`;
-    } catch (e) {
-      console.error('password reset error', e);
-      loginFeedback.innerHTML = `<div class="error">Failed to send reset email: ${e.code || e.message}</div>`;
+    }catch(e){
+      console.error('reset error',e);
+      loginFeedback.innerHTML = `<div class="error">Failed to send reset email: ${e.code||e.message}</div>`;
     }
   });
 
-  logoutBtn.addEventListener('click', async () => {
-    try {
+  logoutBtn.addEventListener('click',async ()=>{
+    try{
       stopAutoUpdate();
       await signOut(auth);
       $("username").value = '';
@@ -745,681 +569,569 @@ onAuthStateChanged(auth, async (user) => {
       missingRole.style.display = 'none';
       lastUpdatedInfo.textContent = '';
       alert('You have been logged out.');
-    } catch (e) {
-      console.error('Logout failed:', e);
+    }catch(e){
+      console.error('Logout failed',e);
       alert('Failed to log out. Please try again.');
     }
   });
 
-  /*************************************
-   * Attendance table with Select All
-   *************************************/
-  addClassBtn.addEventListener('click', addClass);
-  const removeClassBtn = document.getElementById('remove-class-btn');
-  removeClassBtn.addEventListener('click', removeClass);
+  /* ---------- Attendance table ---------- */
+  addClassBtn.addEventListener('click',addClass);
+  $("remove-class-btn").addEventListener('click',removeClass);
 
-  function removeClass() {
-    if (currentRole === 'viewer') return;
-
-    const day = daySelect.value;
-    const subjectIndex = parseInt(subjectSelect.value, 10);
-    const subjects = subjectsByDay[day];
-
-    if (isNaN(subjectIndex) || subjectIndex < 0 || subjectIndex >= subjects.length) {
-      alert('Please select a subject to remove');
-      return;
-    }
-
-    const subjectName = subjects[subjectIndex];
-    if (!confirm(`Are you sure you want to remove "${subjectName}" from ${day}?`)) {
-      return;
-    }
-
-    subjects.splice(subjectIndex, 1);
-
-    const existingData = {};
-    document.querySelectorAll('#attendance-body tr').forEach(row => {
-      const student = row.cells[0].textContent;
-      existingData[student] = [];
-      for (let i = 1; i < row.cells.length; i++) {
-        existingData[student].push(row.cells[i].firstChild.checked);
-      }
-    });
-
-    buildTable(subjects, existingData);
-    populateSubjectSelect();
-
-    alert(`Subject "${subjectName}" removed successfully`);
-  }
-
-  // Save & Export buttons (top & bottom synced)
-  function attachSaveExportHandlers() {
-    if (saveBtnTop) saveBtnTop.addEventListener('click', saveAttendance);
-    if (saveBtnBottom) saveBtnBottom.addEventListener('click', saveAttendance);
-    if (exportBtnTop) exportBtnTop.addEventListener('click', exportCSV);
-    if (exportBtnBottom) exportBtnBottom.addEventListener('click', exportCSV);
+  function attachSaveExportHandlers(){
+    saveBtnTop.addEventListener('click',saveAttendance);
+    saveBtnBottom.addEventListener('click',saveAttendance);
+    exportBtnTop.addEventListener('click',exportCSV);
+    exportBtnBottom.addEventListener('click',exportCSV);
   }
   attachSaveExportHandlers();
+  toggleAutoUpdateTop.addEventListener('click',toggleAutoUpdate);
+  toggleAutoUpdateBottom.addEventListener('click',toggleAutoUpdate);
 
-  // Auto-update toggle buttons (both)
-  if (toggleAutoUpdateTop) toggleAutoUpdateTop.addEventListener('click', toggleAutoUpdate);
-  if (toggleAutoUpdateBottom) toggleAutoUpdateBottom.addEventListener('click', toggleAutoUpdate);
-
-  function populateDayDropdown() {
-    daySelect.innerHTML = '';
-    Object.keys(subjectsByDay).forEach(day => {
-      const option = document.createElement('option');
-      option.value = day;
-      option.textContent = day;
-      daySelect.appendChild(option);
+  function populateDayDropdown(){
+    daySelect.innerHTML='';
+    Object.keys(subjectsByDay).forEach(day=>{
+      const opt=document.createElement('option');
+      opt.value=day; opt.textContent=day;
+      daySelect.appendChild(opt);
     });
   }
 
-  function populateSubjectSelect() {
-    subjectSelect.innerHTML = '';
+  function populateSubjectSelect(){
+    subjectSelect.innerHTML='';
     const subjects = subjectsByDay[daySelect.value] || [];
-    subjects.forEach((s, i) => {
-      const opt = document.createElement('option');
-      opt.value = String(i);
-      opt.textContent = s;
+    subjects.forEach((s,i)=>{
+      const opt=document.createElement('option');
+      opt.value=String(i); opt.textContent=s;
       subjectSelect.appendChild(opt);
     });
   }
 
-  function buildTable(subjects, existingData = {}) {
-    tableHeader.innerHTML = '';
-    tbody.innerHTML = '';
-
-    const subjectIndex = parseInt(subjectSelect.value, 10);
-    const subjectName = subjects[subjectIndex];
+  function buildTable(subjects, existingData={}){
+    tableHeader.innerHTML='';
+    tbody.innerHTML='';
+    const subjectIndex=parseInt(subjectSelect.value,10);
+    const subjectName=subjects[subjectIndex];
     if (!subjectName) return;
 
-    let headerHTML = '<th>Students</th>';
-    headerHTML += `
+    tableHeader.innerHTML = `
+      <th>Students</th>
       <th class="subject-header">
         ${subjectName}
-        <button class="select-all-btn" 
-                data-subject-index="${subjectIndex}" 
-                onclick="toggleSelectAll(${subjectIndex})">
+        <button class="select-all-btn" data-subject-index="${subjectIndex}" onclick="toggleSelectAll(${subjectIndex})">
           Select All
         </button>
       </th>`;
-    tableHeader.innerHTML = headerHTML;
 
-    students.forEach(student => {
-      const row = document.createElement('tr');
-      
-      let isPresent = false;
-      if (existingData[student] && Array.isArray(existingData[student])) {
-        if (subjectIndex < existingData[student].length) {
-          isPresent = existingData[student][subjectIndex];
-        }
+    students.forEach(student=>{
+      const row=document.createElement('tr');
+      let present=false;
+      if (existingData[student] && Array.isArray(existingData[student]) && subjectIndex<existingData[student].length){
+        present = existingData[student][subjectIndex];
       }
-      
       const disabled = currentRole === 'viewer' ? 'disabled' : '';
       row.innerHTML = `
         <td>${student}</td>
-        <td><input type="checkbox" ${isPresent ? 'checked' : ''} ${disabled} 
-             data-student="${student}" data-subject-index="${subjectIndex}"></td>
-      `;
+        <td><input type="checkbox" ${present?'checked':''} ${disabled}
+            data-student="${student}" data-subject-index="${subjectIndex}"></td>`;
       tbody.appendChild(row);
     });
 
     updateSelectAllButtons();
   }
 
-  // Global for select all
-  window.toggleSelectAll = function(subjectIndex) {
-    const checkboxes = document.querySelectorAll(
-      `#attendance-body input[type="checkbox"][data-subject-index="${subjectIndex}"]`
-    );
-    const button = document.querySelector(
-      `.select-all-btn[data-subject-index="${subjectIndex}"]`
-    );
-
-    const allSelected = Array.from(checkboxes).every(cb => cb.checked);
-    checkboxes.forEach(cb => cb.checked = !allSelected);
-    updateSelectAllButton(button, !allSelected);
+  window.toggleSelectAll = function(subjectIndex){
+    const checkboxes = document.querySelectorAll(`#attendance-body input[type="checkbox"][data-subject-index="${subjectIndex}"]`);
+    const btn = document.querySelector(`.select-all-btn[data-subject-index="${subjectIndex}"]`);
+    const allSelected = Array.from(checkboxes).every(cb=>cb.checked);
+    checkboxes.forEach(cb=>cb.checked=!allSelected);
+    updateSelectAllButton(btn,!allSelected);
   };
 
-  function updateSelectAllButtons() {
-    if (currentRole !== 'teacher') return;
-    
-    document.querySelectorAll('.select-all-btn').forEach(button => {
-      const subjectIndex = parseInt(button.getAttribute('data-subject-index'));
-      const checkboxes = document.querySelectorAll(`#attendance-body input[type="checkbox"][data-subject-index="${subjectIndex}"]`);
-      const allSelected = Array.from(checkboxes).every(cb => cb.checked);
-      updateSelectAllButton(button, allSelected);
+  function updateSelectAllButtons(){
+    if (currentRole!=="teacher") return;
+    document.querySelectorAll('.select-all-btn').forEach(btn=>{
+      const idx=parseInt(btn.getAttribute('data-subject-index'));
+      const cbs=document.querySelectorAll(`#attendance-body input[type="checkbox"][data-subject-index="${idx}"]`);
+      const allSelected = Array.from(cbs).every(cb=>cb.checked);
+      updateSelectAllButton(btn,allSelected);
     });
   }
 
-  function updateSelectAllButton(button, allSelected) {
-    if (!button) return;
-    if (allSelected) {
-      button.textContent = 'Deselect All';
-      button.classList.add('deselect');
-    } else {
-      button.textContent = 'Select All';
-      button.classList.remove('deselect');
-    }
+  function updateSelectAllButton(btn,allSelected){
+    if (!btn) return;
+    if (allSelected){ btn.textContent='Deselect All'; btn.classList.add('deselect'); }
+    else{ btn.textContent='Select All'; btn.classList.remove('deselect'); }
   }
 
-  document.addEventListener('change', (e) => {
-    if (e.target.type === 'checkbox' && e.target.hasAttribute('data-subject-index') && currentRole === 'teacher') {
+  document.addEventListener('change',e=>{
+    if (e.target.type==='checkbox' && e.target.hasAttribute('data-subject-index') && currentRole==='teacher'){
       updateSelectAllButtons();
     }
   });
 
-  subjectSelect.addEventListener('change', () => {
-  const day = daySelect.value;
-  const date = dateSelect.value;
-  if (!day || !date) return;
-
-  const docId = `${day}_${date}`;
-
-  getDoc(doc(db, 'attendance', docId))
-    .then(docSnap => {
-      if (docSnap.exists()) {
-        const saved = docSnap.data();
-        const subjects = saved.subjects || (subjectsByDay[day] || []);
-        buildTable(subjects, saved.data || {});
-      } else {
-        const subjects = subjectsByDay[day] || [];
-        buildTable(subjects, {});
-      }
-    })
-    .catch(error => {
-      console.error('Error fetching data:', error);
-      const subjects = subjectsByDay[day] || [];
-      buildTable(subjects, {});
-    });
-});
-
-
-  async function saveAttendance() {
-    if (currentRole !== 'teacher') { 
-      alert('Only teachers can save.'); 
-      return; 
-    }
+  subjectSelect.addEventListener('change',()=>{
     const day = daySelect.value;
     const date = dateSelect.value;
-    if (!date) { 
-      alert('Please choose a date'); 
-      return; 
-    }
+    if (!day || !date) return;
+    const docId=`${day}_${date}`;
+    getDoc(doc(db,'attendance',docId))
+      .then(snap=>{
+        if (snap.exists()){
+          const saved=snap.data();
+          const subjects = saved.subjects || (subjectsByDay[day]||[]);
+          buildTable(subjects,saved.data || {});
+        }else{
+          const subjects = subjectsByDay[day]||[];
+          buildTable(subjects,{});
+        }
+      })
+      .catch(err=>{
+        console.error('Error fetching data',err);
+        const subjects=subjectsByDay[day]||[];
+        buildTable(subjects,{});
+      });
+  });
+
+  async function saveAttendance(){
+    if (currentRole!=='teacher'){ alert('Only teachers can save.'); return; }
+    const day = daySelect.value;
+    const date = dateSelect.value;
+    if (!date){ alert('Please choose a date'); return; }
     const docId = `${day}_${date}`;
-
     const allSubjects = subjectsByDay[day] || [];
-    const subjectIndex = parseInt(subjectSelect.value, 10);
+    const subjectIndex = parseInt(subjectSelect.value,10);
     const subjectName = allSubjects[subjectIndex];
-    if (!subjectName) { 
-      alert('Select a subject'); 
-      return; 
-    }
+    if (!subjectName){ alert('Select a subject'); return; }
 
-    let existingData = {};
-    let existingSubjects = [];
-    try {
-      const docSnap = await getDoc(doc(db, 'attendance', docId));
-      if (docSnap.exists()) {
-        const data = docSnap.data();
+    let existingData={}, existingSubjects=[];
+    try{
+      const snap = await getDoc(doc(db,'attendance',docId));
+      if (snap.exists()){
+        const data = snap.data();
         existingData = data.data || {};
         existingSubjects = data.subjects || [];
       }
-    } catch (e) {
-      console.error('Error fetching existing data:', e);
+    }catch(e){ console.error('fetch existing error',e); }
+
+    if (JSON.stringify(existingSubjects)!==JSON.stringify(allSubjects)){
+      existingSubjects=[...allSubjects];
     }
 
-    if (JSON.stringify(existingSubjects) !== JSON.stringify(allSubjects)) {
-      existingSubjects = [...allSubjects];
-    }
-
-    document.querySelectorAll('#attendance-body tr').forEach(row => {
-      const student = row.cells[0].textContent;
-      const checked = row.cells[1].firstChild.checked;
-      
-      if (!existingData[student]) {
-        existingData[student] = new Array(allSubjects.length).fill(false);
-      }
-      
-      if (existingData[student].length !== allSubjects.length) {
-        const newAttendance = new Array(allSubjects.length).fill(false);
-        for (let i = 0; i < Math.min(existingData[student].length, allSubjects.length); i++) {
-          newAttendance[i] = existingData[student][i];
+    document.querySelectorAll('#attendance-body tr').forEach(row=>{
+      const student=row.cells[0].textContent;
+      const checked=row.cells[1].firstChild.checked;
+      if (!existingData[student]) existingData[student]=new Array(allSubjects.length).fill(false);
+      if (existingData[student].length!==allSubjects.length){
+        const arr=new Array(allSubjects.length).fill(false);
+        for (let i=0;i<Math.min(existingData[student].length,allSubjects.length);i++){
+          arr[i]=existingData[student][i];
         }
-        existingData[student] = newAttendance;
+        existingData[student]=arr;
       }
-      
-      existingData[student][subjectIndex] = checked;
+      existingData[student][subjectIndex]=checked;
     });
 
-    try {
-      await setDoc(doc(db, 'attendance', docId), { 
-        subjects: allSubjects,
-        data: existingData, 
-        day, 
-        date, 
-        updatedBy: auth.currentUser?.uid || null, 
-        updatedAt: Date.now() 
-      }, { merge: true });
-
+    try{
+      await setDoc(doc(db,'attendance',docId),{
+        subjects:allSubjects,
+        data:existingData,
+        day,date,
+        updatedBy:auth.currentUser?.uid || null,
+        updatedAt:Date.now()
+      },{merge:true});
       alert(`Attendance saved for ${subjectName} on ${day} (${date})`);
       await loadSavedDates();
-    } catch (e) {
+    }catch(e){
       console.error(e);
       alert('Failed to save (check Firestore rules).');
     }
   }
 
-  async function loadSavedDates() {
-    savedDates.innerHTML = '<option value="">-- Select Saved Record --</option>';
-    try {
-      const querySnapshot = await getDocs(collection(db, 'attendance'));
-      const records = [];
-
-      querySnapshot.forEach(docSnap => {
-        records.push(docSnap.id);
+  async function loadSavedDates(){
+    savedDates.innerHTML='<option value="">-- Select Saved Record --</option>';
+    try{
+      const qs = await getDocs(collection(db,'attendance'));
+      const rec=[];
+      qs.forEach(d=>rec.push(d.id));
+      rec.sort((a,b)=> new Date(b.split('_')[1]) - new Date(a.split('_')[1]) );
+      rec.forEach(id=>{
+        const opt=document.createElement('option');
+        opt.value=id; opt.textContent=id;
+        savedDates.appendChild(opt);
       });
-
-      records.sort((a, b) => {
-        const dateA = new Date(a.split('_')[1]);
-        const dateB = new Date(b.split('_')[1]);
-        return dateB - dateA;
-      });
-
-      records.forEach(recordId => {
-        const option = document.createElement('option');
-        option.value = recordId;
-        option.textContent = recordId;
-        savedDates.appendChild(option);
-      });
-    } catch (e) {
+    }catch(e){
       console.error(e);
-      alert('Failed to load saved records (check Firestore rules).');
+      alert('Failed to load saved records.');
     }
   }
 
-  function addClass() {
-    if (currentRole === 'viewer') return;
-    const input = document.getElementById('new-class-name');
-    const newClass = (input.value || '').trim();
-    if (!newClass) { alert('Please enter a class name'); return; }
-
+  function addClass(){
+    if (currentRole==='viewer') return;
+    const input = $("new-class-name");
+    const newClass=(input.value||'').trim();
+    if (!newClass){ alert('Please enter a class name'); return; }
     const day = daySelect.value;
     const subjects = subjectsByDay[day];
-    if (subjects.includes(newClass)) { alert('This class already exists for today.'); return; }
+    if (subjects.includes(newClass)){ alert('This class already exists for today.'); return; }
 
-    const existingData = {};
-    document.querySelectorAll('#attendance-body tr').forEach(row => {
-      const student = row.cells[0].textContent;
-      existingData[student] = [];
-      for (let i = 1; i < row.cells.length; i++) {
+    const existingData={};
+    document.querySelectorAll('#attendance-body tr').forEach(row=>{
+      const student=row.cells[0].textContent;
+      existingData[student]=[];
+      for (let i=1;i<row.cells.length;i++){
         existingData[student].push(row.cells[i].firstChild.checked);
       }
     });
 
     subjects.push(newClass);
-    buildTable(subjects, existingData);
-    input.value = '';
+    buildTable(subjects,existingData);
+    input.value='';
     populateSubjectSelect();
   }
 
-  async function exportCSV() {
-    if (currentRole !== 'teacher') { alert('Only teachers can export.'); return; }
+  function removeClass(){
+    if (currentRole==='viewer') return;
+    const day = daySelect.value;
+    const subjectIndex=parseInt(subjectSelect.value,10);
+    const subjects=subjectsByDay[day];
+    if (isNaN(subjectIndex)||subjectIndex<0||subjectIndex>=subjects.length){
+      alert('Please select a subject to remove'); return;
+    }
+    const subjectName=subjects[subjectIndex];
+    if (!confirm(`Remove "${subjectName}" from ${day}?`)) return;
+    subjects.splice(subjectIndex,1);
+
+    const existingData={};
+    document.querySelectorAll('#attendance-body tr').forEach(row=>{
+      const student=row.cells[0].textContent;
+      existingData[student]=[];
+      for (let i=1;i<row.cells.length;i++){
+        existingData[student].push(row.cells[i].firstChild.checked);
+      }
+    });
+    buildTable(subjects,existingData);
+    populateSubjectSelect();
+    alert(`Subject "${subjectName}" removed successfully`);
+  }
+
+  async function exportCSV(){
+    if (currentRole!=='teacher'){ alert('Only teachers can export.'); return; }
     const day = daySelect.value;
     const date = dateSelect.value;
     const docId = `${day}_${date}`;
-    try {
-      const docSnap = await getDoc(doc(db, 'attendance', docId));
-      if (!docSnap.exists()) { alert('No data found for this date'); return; }
-      const saved = docSnap.data();
-      let csvContent = `Date,${date},Day,${day}\n`;
-      csvContent += 'Student,' + (saved.subjects || []).join(',') + '\n';
-      Object.keys(saved.data || {}).forEach(student => {
-        csvContent += student + ',' + (saved.data[student] || []).map(p => p ? 'Present' : 'Absent').join(',') + '\n';
+    try{
+      const snap = await getDoc(doc(db,'attendance',docId));
+      if (!snap.exists()){ alert('No data found for this date'); return; }
+      const saved=snap.data();
+      let csv=`Date,${date},Day,${day}\n`;
+      csv+='Student,'+(saved.subjects||[]).join(',')+'\n';
+      Object.keys(saved.data||{}).forEach(st=>{
+        csv+=st+','+(saved.data[st]||[]).map(p=>p?'Present':'Absent').join(',')+'\n';
       });
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Attendance_${day}_${date}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download=`Attendance_${day}_${date}.csv`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (e) {
-      console.error(e);
-      alert('Failed to export (check Firestore rules).');
+    }catch(e){
+      console.error(e); alert('Failed to export.');
     }
   }
 
-  /*************************************
-   * QR + Geolocation session (teacher)
-   *************************************/
-  setClassHereBtn.addEventListener('click', () => {
-    if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
-      return;
-    }
-
-    if (scanStatus) {
+  /* ---------- QR + Geolocation (teacher) ---------- */
+  setClassHereBtn.addEventListener('click',()=>{
+    if (!navigator.geolocation){ alert('Geolocation not supported'); return; }
+    if (scanStatus){
       scanStatus.classList.remove('hidden');
-      scanStatus.className = 'notice';
-      scanStatus.innerHTML = 'Detecting location...';
+      scanStatus.className='notice';
+      scanStatus.textContent='Detecting location...';
     }
-
-    setClassHereBtn.disabled = true;
-    setClassHereBtn.textContent = 'Detecting location...';
-
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 30000,
-      maximumAge: 30000
-    };
+    setClassHereBtn.disabled=true;
+    setClassHereBtn.textContent='Detecting location...';
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        CLASS_LAT = pos.coords.latitude;
-        CLASS_LON = pos.coords.longitude;
-        
-        if (scanStatus) {
-          scanStatus.className = 'success';
-scanStatus.innerHTML = `
-  📌 Location Updated<br>
-  Latitude: ${CLASS_LAT.toFixed(6)}<br>
-  Longitude: ${CLASS_LON.toFixed(6)}
-`;
-
+      pos=>{
+        CLASS_LAT=pos.coords.latitude;
+        CLASS_LON=pos.coords.longitude;
+        if (scanStatus){
+          scanStatus.className='success';
+          scanStatus.innerHTML=`📌 Location Updated<br>Lat: ${CLASS_LAT.toFixed(6)}<br>Lon: ${CLASS_LON.toFixed(6)}`;
         }
-        
-        setClassHereBtn.disabled = false;
-        setClassHereBtn.textContent = 'Use my current location';
+        setClassHereBtn.disabled=false;
+        setClassHereBtn.textContent='Use my current location';
       },
-      (err) => {
-        let errorMessage = 'Failed to get location: ';
-        switch(err.code) {
-          case err.PERMISSION_DENIED:
-            errorMessage += 'Permission denied. Please enable location services.';
-            break;
-          case err.POSITION_UNAVAILABLE:
-            errorMessage += 'Location information unavailable.';
-            break;
-          case err.TIMEOUT:
-            errorMessage += 'Location request timed out.';
-            break;
-          default:
-            errorMessage += err.message;
-        }
-        
-        if (scanStatus) {
-          scanStatus.className = 'error';
-          scanStatus.innerHTML = errorMessage;
-        }
-        
-        setClassHereBtn.disabled = false;
-        setClassHereBtn.textContent = 'Use my current location';
+      err=>{
+        let msg='Failed to get location: ';
+        if (err.code===err.PERMISSION_DENIED) msg+='Permission denied.';
+        else if (err.code===err.POSITION_UNAVAILABLE) msg+='Position unavailable.';
+        else if (err.code===err.TIMEOUT) msg+='Request timed out.';
+        else msg+=err.message;
+        if (scanStatus){ scanStatus.className='error'; scanStatus.textContent=msg; }
+        setClassHereBtn.disabled=false;
+        setClassHereBtn.textContent='Use my current location';
       },
-      options
+      {enableHighAccuracy:true, timeout:30000, maximumAge:30000}
     );
   });
 
-  startQrBtn.addEventListener('click', async () => {
-    if (currentRole !== 'teacher') { alert('Only teachers can start sessions.'); return; }
+  startQrBtn.addEventListener('click',async ()=>{
+    if (currentRole!=='teacher'){ alert('Only teachers can start sessions.'); return; }
+    const subjectIndex=parseInt(subjectSelect.value,10);
+    const subjectName=(subjectsByDay[daySelect.value]||[])[subjectIndex];
+    if (!subjectName){ alert('Select a subject'); return; }
+    const radiusMeters=parseInt(radiusInput.value||CLASS_RADIUS_METERS_DEFAULT,10);
+    const expiresInMinutes=parseInt(expireMinsInput.value||3,10);
+    const day=daySelect.value;
+    const date=dateSelect.value;
+    if (!date){ alert('Choose a date'); return; }
 
-    const subjectIndex = parseInt(subjectSelect.value, 10);
-    const subjectName = (subjectsByDay[daySelect.value] || [])[subjectIndex];
-    if (!subjectName) { alert('Select a subject'); return; }
-
-    const radiusMeters = parseInt(radiusInput.value || CLASS_RADIUS_METERS_DEFAULT, 10);
-    const expiresInMinutes = parseInt(expireMinsInput.value || 3, 10);
-    const day = daySelect.value;
-    const date = dateSelect.value;
-    if (!date) { alert('Choose a date'); return; }
-
-    const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
-    const expiresAt = Date.now() + expiresInMinutes * 60 * 1000;
+    const token = Math.random().toString(36).slice(2)+Date.now().toString(36);
+    const expiresAt = Date.now() + expiresInMinutes*60*1000;
 
     const sessionDoc = {
-      token,
-      day,
-      date,
-      subjectIndex,
-      subjectName,
-      classLat: CLASS_LAT,
-      classLon: CLASS_LON,
+      token, day, date, subjectIndex, subjectName,
+      classLat:CLASS_LAT, classLon:CLASS_LON,
       radiusMeters,
-      createdBy: auth.currentUser?.uid || null,
-      createdAt: serverTimestamp(),
+      createdBy:auth.currentUser?.uid || null,
+      createdAt:serverTimestamp(),
       expiresAt
     };
 
-    try {
-      await setDoc(doc(db, 'attendance_sessions', token), sessionDoc);
+    try{
+      await setDoc(doc(db,'attendance_sessions',token),sessionDoc);
       activeSessionToken = token;
-      activeSessionRef = doc(db, 'attendance_sessions', token);
       renderQRCode(token);
-      endQrBtn.style.display = '';
+      endQrBtn.style.display='';
       qrBox.classList.remove('hidden');
       qrInfo.innerHTML = `<div><strong>Session:</strong> ${day} ${date} — <code class="kbd">${subjectName}</code><br/>Expires at: ${new Date(expiresAt).toLocaleTimeString()}</div>`;
-    } catch (e) {
+
+      if (autoExpireTimeout) clearTimeout(autoExpireTimeout);
+      autoExpireTimeout = setTimeout(async ()=>{
+        if (!activeSessionToken) return;
+        try{
+          await setDoc(doc(db,'attendance_sessions',activeSessionToken),{expiresAt:Date.now()},{merge:true});
+        }catch(e){ console.warn('auto-expire setDoc failed',e); }
+        endQrSessionUI();
+      }, expiresInMinutes*60*1000 + 2000); // little buffer
+    }catch(e){
       console.error(e);
       alert('Failed to start session (check Firestore rules).');
     }
   });
 
-  endQrBtn.addEventListener('click', async () => {
-    if (!activeSessionToken) return;
-    try {
-      const ref = doc(db, 'attendance_sessions', activeSessionToken);
-      await setDoc(ref, { expiresAt: Date.now() }, { merge: true });
-    } catch (e) { console.warn(e); }
+  function endQrSessionUI(){
     activeSessionToken = null;
-    activeSessionRef = null;
-    endQrBtn.style.display = 'none';
+    if (autoExpireTimeout) clearTimeout(autoExpireTimeout);
+    endQrBtn.style.display='none';
     qrBox.classList.add('hidden');
-    $("qrcode").innerHTML = '';
-    qrInfo.textContent = '';
+    $("qrcode").innerHTML='';
+    qrInfo.textContent='';
+  }
+
+  endQrBtn.addEventListener('click',async ()=>{
+    if (!activeSessionToken) return;
+    try{
+      await setDoc(doc(db,'attendance_sessions',activeSessionToken),{expiresAt:Date.now()},{merge:true});
+    }catch(e){ console.warn(e); }
+    endQrSessionUI();
   });
 
-  function renderQRCode(token) {
+  function renderQRCode(token){
     const url = `${window.location.origin}${window.location.pathname}?token=${encodeURIComponent(token)}`;
-    $("qrcode").innerHTML = '';
-    qrcode = new QRCode("qrcode", { text: url, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
+    $("qrcode").innerHTML='';
+    qrcode = new QRCode("qrcode",{ text:url, width:220, height:220, correctLevel:QRCode.CorrectLevel.M });
   }
 
-  /*************************************
-   * Student scan flow
-   *************************************/
-  function distanceMeters(lat1, lon1, lat2, lon2) {
-    const R = 6371000;
-    const dLat = (lat2 - lat1) * Math.PI/180;
-    const dLon = (lon2 - lon1) * Math.PI/180;
-    const a = Math.sin(dLat/2)**2 +
-              Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) *
-              Math.sin(dLon/2)**2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
+  /* ---------- Student scan flow ---------- */
+  function distanceMeters(lat1,lon1,lat2,lon2){
+    const R=6371000;
+    const dLat=(lat2-lat1)*Math.PI/180;
+    const dLon=(lon2-lon1)*Math.PI/180;
+    const a=Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+    return R*c;
   }
 
-  async function handleScanFlow(token) {
-    if (scanStatus) {
+  async function handleScanFlow(token){
+    if (scanStatus){
       scanStatus.classList.remove('hidden');
-      scanStatus.className = 'notice';
-      scanStatus.innerHTML = `QR token detected. Verifying your location…`;
+      scanStatus.className='notice';
+      scanStatus.textContent='QR token detected. Verifying your location…';
     }
 
-    const sessSnap = await getDoc(doc(db, 'attendance_sessions', token));
-    if (!sessSnap.exists()) {
-      if (scanStatus) {
-        scanStatus.className = 'error';
-        scanStatus.innerHTML = `Invalid or expired session.`;
-      }
+    const sessSnap = await getDoc(doc(db,'attendance_sessions',token));
+    if (!sessSnap.exists()){
+      if (scanStatus){ scanStatus.className='error'; scanStatus.textContent='Invalid or expired session.'; }
       return;
     }
-
     const sess = sessSnap.data();
-    if (Date.now() > (sess.expiresAt || 0)) {
-      if (scanStatus) {
-        scanStatus.className = 'error';
-        scanStatus.innerHTML = `This session has expired.`;
-      }
+    if (Date.now() > (sess.expiresAt || 0)){
+      if (scanStatus){ scanStatus.className='error'; scanStatus.textContent='This session has expired.'; }
       return;
     }
 
     const uid = auth.currentUser?.uid;
-    const uref = await getDoc(doc(db, 'users', uid));
+    if (!uid){
+      if (scanStatus){ scanStatus.className='error'; scanStatus.textContent='You must be logged in to mark attendance.'; }
+      return;
+    }
+
+    // 🔒 Prevent double attendance per session
+    const scanDocId = `${token}_${uid}`;
+    const existingScan = await getDoc(doc(db,'attendance_scans',scanDocId));
+    if (existingScan.exists()){
+      if (scanStatus){
+        scanStatus.className='success';
+        scanStatus.innerHTML='Your attendance for this session is already marked ✅';
+      }
+      showToast('Attendance already marked for this QR.', 'success');
+      return;
+    }
+
+    const uref = await getDoc(doc(db,'users',uid));
     const udata = uref.exists() ? uref.data() : null;
     const studentKey = udata?.studentKey;
-    
-    if (!studentKey || !students.includes(studentKey)) {
-      if (scanStatus) {
-        scanStatus.className = 'error';
-        scanStatus.innerHTML = `Your profile is missing a valid <code>studentKey</code>.`;
+
+    if (!studentKey || !students.includes(studentKey)){
+      if (scanStatus){
+        scanStatus.className='error';
+        scanStatus.innerHTML='Your profile is missing a valid <code>studentKey</code>. Contact faculty.';
       }
       return;
     }
 
-    if (!navigator.geolocation) {
-      if (scanStatus) {
-        scanStatus.className = 'error';
-        scanStatus.innerHTML = `Geolocation not supported on this device.`;
-      }
+    if (!navigator.geolocation){
+      if (scanStatus){ scanStatus.className='error'; scanStatus.textContent='Geolocation not supported on this device.'; }
       return;
     }
 
-    const locationOptions = {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0
-    };
-
-    if (scanStatus) {
-      scanStatus.innerHTML = `Detecting your location (this may take a few seconds)...`;
-    }
+    if (scanStatus) scanStatus.textContent='Detecting your location (this may take a few seconds)...';
 
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
+      async pos=>{
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
         const accuracy = pos.coords.accuracy;
-        const distM = distanceMeters(lat, lon, sess.classLat, sess.classLon);
+        const distM = distanceMeters(lat,lon,sess.classLat,sess.classLon);
 
-        if (accuracy > 50) {
-          if (scanStatus) {
-            scanStatus.className = 'error';
-            scanStatus.innerHTML = `Your location accuracy is too low (${Math.round(accuracy)}m). 
-              Please move to an area with better GPS signal.`;
+        if (accuracy > 50){
+          if (scanStatus){
+            scanStatus.className='error';
+            scanStatus.innerHTML=`Your location accuracy is too low (${Math.round(accuracy)}m). Try better GPS signal.`;
           }
+          showToast('Low GPS accuracy. Try again.', 'error');
           return;
         }
 
-        if (distM <= (sess.radiusMeters || 35)) {
-          try {
+        if (distM <= (sess.radiusMeters || 35)){
+          try{
             await markPresentForStudent(studentKey, sess.day, sess.date, sess.subjectIndex);
-            
-            await setDoc(doc(db, 'attendance_scans', `${token}_${uid}`), {
+
+            await setDoc(doc(db,'attendance_scans',scanDocId),{
               token, uid, studentKey, lat, lon, accuracy, at: Date.now()
             });
 
-            if (scanStatus) {
-              scanStatus.className = 'success';
-              scanStatus.innerHTML = `Attendance marked for <strong>${sess.subjectName}</strong>!<br>
-                Distance from class: ~${Math.round(distM)}m`;
+            if (scanStatus){
+              scanStatus.className='success';
+              scanStatus.innerHTML=`Attendance marked for <strong>${sess.subjectName}</strong>!<br>Distance from class: ~${Math.round(distM)}m`;
             }
-          } catch (e) {
+            showToast('Attendance marked successfully ✅','success');
+
+            // Auto-redirect viewer after a few seconds
+            if (currentRole === 'viewer'){
+              setTimeout(()=>{
+                window.location.href = 'private.html?from=qr';
+              }, 4000);
+            }
+          }catch(e){
             console.error(e);
-            if (scanStatus) {
-              scanStatus.className = 'error';
-              scanStatus.innerHTML = `Failed to mark attendance: ${e.message || e}`;
+            if (scanStatus){
+              scanStatus.className='error';
+              scanStatus.textContent = `Failed to mark attendance: ${e.message || e}`;
             }
+            showToast('Failed to mark attendance.','error');
           }
         } else {
-          if (scanStatus) {
-            scanStatus.className = 'error';
-            scanStatus.innerHTML = `You're too far from classroom (${Math.round(distM)}m away). 
-              Maximum allowed: ${sess.radiusMeters || 35}m.`;
+          if (scanStatus){
+            scanStatus.className='error';
+            scanStatus.innerHTML=`You're too far from classroom (~${Math.round(distM)}m). Max allowed: ${sess.radiusMeters || 35}m.`;
           }
+          showToast('Too far from classroom location.','error');
         }
       },
-      (err) => {
-        let errorMsg = 'Location error: ';
-        switch(err.code) {
-          case err.PERMISSION_DENIED:
-            errorMsg += 'Permission denied. Please enable location services in your browser settings.';
-            break;
-          case err.POSITION_UNAVAILABLE:
-            errorMsg += 'Location unavailable. Check your internet/GPS connection.';
-            break;
-          case err.TIMEOUT:
-            errorMsg += 'Location request timed out. Please try again in an area with better signal.';
-            break;
-          default:
-            errorMsg += err.message;
-        }
-        if (scanStatus) {
-          scanStatus.className = 'error';
-          scanStatus.innerHTML = errorMsg;
-        }
+      err=>{
+        let msg='Location error: ';
+        if (err.code===err.PERMISSION_DENIED) msg+='Permission denied. Enable location.';
+        else if (err.code===err.POSITION_UNAVAILABLE) msg+='Location unavailable.';
+        else if (err.code===err.TIMEOUT) msg+='Request timed out.';
+        else msg+=err.message;
+        if (scanStatus){ scanStatus.className='error'; scanStatus.textContent=msg; }
+        showToast('Location error. Please try again.','error');
       },
-      locationOptions
+      {enableHighAccuracy:true, timeout:10000, maximumAge:0}
     );
   }
 
-  async function markPresentForStudent(studentKey, day, date, subjectIndex) {
+  async function markPresentForStudent(studentKey, day, date, subjectIndex){
     const docId = `${day}_${date}`;
-    const attRef = doc(db, 'attendance', docId);
+    const attRef = doc(db,'attendance',docId);
     const attSnap = await getDoc(attRef);
 
     let subjects = subjectsByDay[day] || [];
-    if (attSnap.exists() && Array.isArray(attSnap.data().subjects)) {
-      subjects = attSnap.data().subjects;   // 🔥 always use saved subjects
+    if (attSnap.exists() && Array.isArray(attSnap.data().subjects)){
+      subjects = attSnap.data().subjects;
     }
-    const blankRow = subjects.map(() => false);
+    const blankRow = subjects.map(()=>false);
 
+    let data={};
 
-    let data = {};
-    if (attSnap.exists()) {
+    if (attSnap.exists()){
       const saved = attSnap.data();
       const inUseSubjects = Array.isArray(saved.subjects) && saved.subjects.length ? saved.subjects : subjects;
-      const rowTemplate = inUseSubjects.map(() => false);
+      const rowTemplate = inUseSubjects.map(()=>false);
 
       data = saved.data || {};
-      Object.keys(data).forEach(k => {
-        if (!Array.isArray(data[k]) || data[k].length !== inUseSubjects.length) {
-          const arr = rowTemplate.slice();
-          (data[k] || []).forEach((v, i) => { if (i < arr.length) arr[i] = !!v; });
-          data[k] = arr;
+      Object.keys(data).forEach(k=>{
+        if (!Array.isArray(data[k]) || data[k].length!==inUseSubjects.length){
+          const arr=rowTemplate.slice();
+          (data[k]||[]).forEach((v,i)=>{ if (i<arr.length) arr[i]=!!v; });
+          data[k]=arr;
         }
       });
 
-      if (!data[studentKey]) data[studentKey] = rowTemplate.slice();
-      data[studentKey][subjectIndex] = true;
+      if (!data[studentKey]) data[studentKey]=rowTemplate.slice();
 
-      await setDoc(attRef, {
-        subjects: inUseSubjects,
+      // if already present for that subject, keep as true (idempotent)
+      if (!data[studentKey][subjectIndex]){
+        data[studentKey][subjectIndex]=true;
+      }
+
+      await setDoc(attRef,{
+        subjects:inUseSubjects,
         data,
-        day, date,
-        updatedBy: auth.currentUser?.uid || null,
-        updatedAt: Date.now()
+        day,date,
+        updatedBy:auth.currentUser?.uid || null,
+        updatedAt:Date.now()
       });
     } else {
-      data[studentKey] = blankRow.slice();
-      data[studentKey][subjectIndex] = true;
-
-      await setDoc(attRef, {
+      data[studentKey]=blankRow.slice();
+      data[studentKey][subjectIndex]=true;
+      await setDoc(attRef,{
         subjects,
         data,
-        day, date,
-        updatedBy: auth.currentUser?.uid || null,
-        updatedAt: Date.now()
+        day,date,
+        updatedBy:auth.currentUser?.uid || null,
+        updatedAt:Date.now()
       });
     }
+  }
 
-}
-  // Start realtime updates after the page launches (not inside markPresentForStudent)
-setTimeout(() => {
-  startAutoUpdate();
-}, 500);
+  // Kick auto-update shortly after load (teacher side)
+  setTimeout(()=>{ startAutoUpdate(); },500);
 
 </script>
 </body>
