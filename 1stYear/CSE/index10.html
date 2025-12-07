@@ -687,39 +687,39 @@ function updateTableWithChanges(newData) {
   }
 
  function showApp() {
-  // Hide login page, show attendance
   if (loginSection) loginSection.classList.add('hidden');
   if (attendanceSection) attendanceSection.classList.remove('hidden');
 
   populateDayDropdown();
   dateSelect.value = new Date().toISOString().split('T')[0];
-  buildTable(subjectsByDay['Monday']);
   loadSavedDates();
   populateSubjectSelect();
 
-  // --------- ROLE BASED UI PROTECTION ----------
-  const isViewer = currentRole === 'viewer';
+  // NEW: Select first subject by default
+  if (subjectSelect.options.length > 0) {
+    subjectSelect.value = "0";
+  }
 
+  // NEW: Build table only AFTER subject is selected
+  const subjects = subjectsByDay[daySelect.value] || [];
+  buildTable(subjects);
+
+  const isViewer = currentRole === 'viewer';
   if (addClassSection) addClassSection.style.display = isViewer ? 'none' : '';
   if (teacherButtonsTop) teacherButtonsTop.style.display = isViewer ? 'none' : '';
   if (teacherButtonsBottom) teacherButtonsBottom.style.display = isViewer ? 'none' : '';
   if (qrSessionBox) qrSessionBox.style.display = isViewer ? 'none' : '';
-
   if (daySelect) daySelect.disabled = isViewer;
   if (dateSelect) dateSelect.disabled = isViewer;
-
-  // Auto-update toggle visible for both
   if (toggleAutoUpdateBtn) toggleAutoUpdateBtn.style.display = '';
 
-  // --------- Prevent accidental crashes for viewer QR scan ----------
-  // If viewer scanned QR, do NOT build QR UI for them
   if (isViewer) {
     if (qrBox) qrBox.classList.add("hidden");
   }
 
-  // Start auto-update for table
   startAutoUpdate();
 }
+
 
 
   /*************************************
