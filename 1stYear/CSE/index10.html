@@ -231,11 +231,12 @@
   <button id="add-class-btn">Add Class</button>
   <button id="remove-class-btn" class="danger-btn">Remove Selected Subject</button>
 
-      <div id="teacher-buttons" class="row">
-      <button id="save-btn">Save Attendance</button>
-      <button id="export-btn">Export as CSV</button>
-      <button id="toggle-auto-update">🔄 Auto-Update: ON</button>
-    </div>
+      <div id="teacher-buttons-bottom" class="row">
+  <button id="save-btn2">Save Attendance</button>
+  <button id="export-btn2">Export as CSV</button>
+  <button id="toggle-auto-update-bottom">🔄 Auto-Update: ON</button>
+</div>
+
     </div>
       <div id="qr-box" class="hidden">
         <div id="qrcode"></div>
@@ -268,7 +269,7 @@
     <div id="teacher-buttons" class="row">
       <button id="save-btn2">Save Attendance</button>
       <button id="export-btn2">Export as CSV</button>
-      <button id="toggle-auto-update">🔄 Auto-Update: ON</button>
+      <button id="toggle-auto-update-bottom">🔄 Auto-Update: ON</button>
     </div>
   </div>
 </div>
@@ -388,7 +389,8 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   const dateSelect = $("date-select");
   const savedDates = $("saved-dates");
   const addClassSection = $("add-class-section");
-  const teacherButtons = $("teacher-buttons");
+  const teacherButtonsTop = $("teacher-buttons");
+  const teacherButtonsBottom = $("teacher-buttons-bottom");
   const tableHeader = $("table-header");
   const tbody = $("attendance-body");
   const loginBtn = $("login-btn");
@@ -404,6 +406,7 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   const autoUpdateStatus = $("auto-update-status");
   const lastUpdatedInfo = $("last-updated-info");
   const toggleAutoUpdateBtn = $("toggle-auto-update");
+  const toggleAutoUpdateBtnBottom = $("toggle-auto-update-bottom");
 
   // QR session UI
   const qrSessionBox = $("qr-session-box");
@@ -431,7 +434,31 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   let lastKnownData = null;
 
   // Toggle auto-update functionality
-  toggleAutoUpdateBtn.addEventListener('click', () => {
+ // Toggle auto-update functionality
+toggleAutoUpdateBtn.addEventListener('click', () => {
+  autoUpdateEnabled = !autoUpdateEnabled;
+
+  // Button text + color
+  const text = autoUpdateEnabled ? '🔄 Auto-Update: ON' : '⏸️ Auto-Update: OFF';
+  const color = autoUpdateEnabled ? '#28a745' : '#6c757d';
+
+  toggleAutoUpdateBtn.innerHTML = text;
+  toggleAutoUpdateBtn.style.backgroundColor = color;
+  if (toggleAutoUpdateBtnBottom) {
+    toggleAutoUpdateBtnBottom.innerHTML = text;
+    toggleAutoUpdateBtnBottom.style.backgroundColor = color;
+  }
+
+  // Feature behavior
+  if (autoUpdateEnabled) {
+    startAutoUpdate();
+    updateStatusIndicator('connected', '🟢 Live Updates Active');
+  } else {
+    stopAutoUpdate();
+    updateStatusIndicator('error', '🔴 Live Updates Paused');
+  }
+});
+ toggleAutoUpdateBtn.addEventListener('click', () => {
     autoUpdateEnabled = !autoUpdateEnabled;
     
     if (autoUpdateEnabled) {
@@ -687,7 +714,8 @@ function updateTableWithChanges(newData) {
   const isViewer = currentRole === 'viewer';
 
   if (addClassSection) addClassSection.style.display = isViewer ? 'none' : '';
-  if (teacherButtons) teacherButtons.style.display = isViewer ? 'none' : '';
+  if (teacherButtonsTop) teacherButtonsTop.style.display = isViewer ? 'none' : '';
+  if (teacherButtonsBottom) teacherButtonsBottom.style.display = isViewer ? 'none' : '';
   if (qrSessionBox) qrSessionBox.style.display = isViewer ? 'none' : '';
 
   if (daySelect) daySelect.disabled = isViewer;
