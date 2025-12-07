@@ -1140,7 +1140,9 @@ if (urlToken && currentRole === 'viewer') {
         
         if (scanStatus) {
           scanStatus.className = 'success';
-          scanStatus.innerHTML = `Classroom location set successfully!<br>
+scanStatus.innerHTML = `Attendance marked for <strong>${sess.subjectName}</strong>!`;
+window.history.replaceState(null, "", window.location.pathname);
+
             Latitude: ${CLASS_LAT.toFixed(6)}<br>
             Longitude: ${CLASS_LON.toFixed(6)}`;
         }
