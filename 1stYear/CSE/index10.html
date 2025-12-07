@@ -1140,11 +1140,12 @@ if (urlToken && currentRole === 'viewer') {
         
         if (scanStatus) {
           scanStatus.className = 'success';
-scanStatus.innerHTML = `Attendance marked for <strong>${sess.subjectName}</strong>!`;
-window.history.replaceState(null, "", window.location.pathname);
+scanStatus.innerHTML = `
+  📌 Location Updated<br>
+  Latitude: ${CLASS_LAT.toFixed(6)}<br>
+  Longitude: ${CLASS_LON.toFixed(6)}
+`;
 
-            Latitude: ${CLASS_LAT.toFixed(6)}<br>
-            Longitude: ${CLASS_LON.toFixed(6)}`;
         }
         
         setClassHereBtn.disabled = false;
@@ -1427,12 +1428,7 @@ window.history.replaceState(null, "", window.location.pathname);
     }
   }
 
- (async function immediateTokenCheck() {
-  const token = new URLSearchParams(window.location.search).get('token');
-  if (token && auth.currentUser) {
-    await handleScanFlow(token);
-  }
-})();
+ 
 
 </script>
 </body>
