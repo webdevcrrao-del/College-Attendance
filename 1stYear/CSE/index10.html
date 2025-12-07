@@ -1386,8 +1386,12 @@ scanStatus.innerHTML = `
     const attRef = doc(db, 'attendance', docId);
     const attSnap = await getDoc(attRef);
 
-    const subjects = subjectsByDay[day] || [];
+    let subjects = subjectsByDay[day] || [];
+    if (attSnap.exists() && Array.isArray(attSnap.data().subjects)) {
+      subjects = attSnap.data().subjects;   // 🔥 always use saved subjects
+    }
     const blankRow = subjects.map(() => false);
+
 
     let data = {};
     if (attSnap.exists()) {
