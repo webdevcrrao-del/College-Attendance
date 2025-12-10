@@ -358,8 +358,8 @@ Check Video Element
 <!-- Google reCAPTCHA -->
   <!-- <script src="https://www.google.com/recaptcha/api.js" async defer></script>   -->
 
-<!-- <script type="module"> -->
-  <script>
+<script type="module">
+  
 
     // Replace with your PC's local IP
 const pcIP = "192.168.1.5"; // Change to your actual IPv4 address
@@ -372,9 +372,9 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   /*************************************
    * Firebase SDKs (v9 modular)
    *************************************/
-  // import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-  // import { getFirestore, doc, setDoc, getDoc, getDocs, collection, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-  // import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, getDocs, collection, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
  const firebaseConfig = {
   apiKey: "AIzaSyBheBBqf__GHWeD7DaLQzIjJDu3n-7srY8",
@@ -386,13 +386,11 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   measurementId: "G-QNJ7HWYS8L"
 };
 
-    firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
+   
 
-  // const app = initializeApp(firebaseConfig);
-  // const db = getFirestore(app);
-  // const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
 
   /*************************************
    * CONFIG: classroom defaults (override via "Use my current location")
