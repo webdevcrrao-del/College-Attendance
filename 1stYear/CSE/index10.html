@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <meta name="referrer" content="no-referrer">
+
   <title>Attendance System For CSE(DS)</title>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
@@ -724,6 +727,7 @@ function updateTableWithChanges(newData) {
   function showApp() {
     loginSection.classList.add('hidden');
     attendanceSection.classList.remove('hidden');
+      if (isMobile()) document.getElementById("mobile-camera-box").style.display = "block";
 
     populateDayDropdown();
     dateSelect.value = new Date().toISOString().split('T')[0];
