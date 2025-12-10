@@ -371,9 +371,9 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   /*************************************
    * Firebase SDKs (v9 modular)
    *************************************/
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc, getDocs, collection, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-  import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+  // import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+  // import { getFirestore, doc, setDoc, getDoc, getDocs, collection, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+  // import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
  const firebaseConfig = {
   apiKey: "AIzaSyBheBBqf__GHWeD7DaLQzIjJDu3n-7srY8",
@@ -390,8 +390,8 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
   // const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
+  // const db = getFirestore(app);
+  // const auth = getAuth(app);
 
   /*************************************
    * CONFIG: classroom defaults (override via "Use my current location")
