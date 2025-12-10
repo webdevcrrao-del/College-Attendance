@@ -6,12 +6,13 @@
   <title>College Attendance Navigation</title>
   <style>
     :root {
-      --ink:#2c3e50;
-      --ink-2:#34495e;
-      --bg:#f5f7fa;
-      --brand:#3498db;
-      --brand-2:#2980b9;
+      --ink:#1e293b;
+      --ink-2:#334155;
+      --bg:#f1f5f9;
+      --brand:#2563eb;
+      --brand-2:#1d4ed8;
       --card-bg:#ffffff;
+      --radius:18px;
     }
 
     * { box-sizing:border-box; margin:0; padding:0; }
@@ -19,78 +20,126 @@
       font-family:'Segoe UI', system-ui, sans-serif;
       background:var(--bg);
       color:var(--ink);
-      line-height:1.5;
+      line-height:1.6;
     }
 
+    /* HEADER */
     header {
       background:var(--ink);
       color:white;
-      padding:20px 24px;
+      padding:26px 24px;
       display:flex;
       justify-content:center;
       align-items:center;
-      box-shadow:0 2px 6px rgba(0,0,0,.15);
+      box-shadow:0 4px 18px rgba(0,0,0,.20);
+      position:sticky;
+      top:0;
+      z-index:10;
     }
     header h1 {
-      margin:0;
-      font-size:1.6rem;
+      font-size:1.9rem;
       font-weight:700;
       letter-spacing:.5px;
     }
 
+    /* MAIN GRID */
     main {
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-      gap:24px;
-      max-width:1200px;
-      margin:40px auto;
-      padding:0 20px;
+      grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+      gap:32px;
+      max-width:1250px;
+      margin:50px auto;
+      padding:0 24px;
     }
 
+    /* CARD */
     .container {
       background:var(--card-bg);
-      padding:32px 24px;
-      border-radius:14px;
-      box-shadow:0 6px 16px rgba(0,0,0,.08);
+      padding:38px 28px;
+      border-radius:var(--radius);
+      box-shadow:0 8px 26px rgba(0,0,0,.08);
       text-align:center;
-      transition:transform .2s ease;
+      transition:all .3s ease;
+      border:1px solid #e2e8f0;
     }
     .container:hover {
-      transform:translateY(-3px);
+      transform:translateY(-6px);
+      box-shadow:0 12px 30px rgba(0,0,0,.12);
     }
 
     h2 {
-      margin-bottom:20px;
+      margin-bottom:22px;
       color:var(--ink-2);
-      font-size:1.25rem;
-      font-weight:600;
+      font-size:1.35rem;
+      font-weight:700;
     }
 
+    /* BUTTON */
     .btn {
       display:block;
       width:100%;
-      margin:10px 0;
-      padding:14px;
-      font-size:1rem;
+      margin:12px 0;
+      padding:15px;
+      font-size:1.05rem;
       font-weight:600;
       border:none;
-      border-radius:10px;
+      border-radius:12px;
       cursor:pointer;
       color:white;
       background:var(--brand);
       transition:all .25s ease;
     }
-    
+
     .btn:hover {
       background:var(--brand-2);
-      transform:translateY(-2px);
+      transform:translateY(-3px);
     }
 
+    /* Download App Button */
+    .download {
+      display:inline-block;
+      margin:40px auto 0;
+      padding:14px 24px;
+      background:var(--brand);
+      color:white;
+      border-radius:10px;
+      font-size:1.05rem;
+      font-weight:600;
+      text-decoration:none;
+      transition:.25s ease;
+    }
+
+    .download:hover {
+      background:var(--brand-2);
+      transform:translateY(-3px);
+    }
+
+    /* FOOTER */
     footer {
       text-align:center;
-      padding:20px;
-      font-size:0.9rem;
-      color:#7f8c8d;
+      padding:25px;
+      font-size:0.95rem;
+      color:#64748b;
+      margin-top:40px;
+    }
+
+    /* MEDIA QUERIES */
+    @media (max-width:900px) {
+      header h1 { font-size:1.7rem; }
+      .container { padding:32px 24px; }
+    }
+
+    @media (max-width:600px) {
+      header h1 { font-size:1.5rem; }
+      main { gap:24px; }
+      .container { padding:28px 20px; }
+    }
+
+    @media (max-width:420px) {
+      header { padding:20px; }
+      header h1 { font-size:1.3rem; }
+      .btn { font-size:0.95rem; padding:13px; }
+      h2 { font-size:1.2rem; }
     }
   </style>
 </head>
@@ -102,11 +151,10 @@
   <main>
     <div class="container">
       <h2>1st Year</h2>
-     
-       <button class="btn" onclick="window.location.href='1stYear/CSE/index10.html'">CSE</button>
+      <button class="btn" onclick="window.location.href='1stYear/CSE/index10.html'">CSE</button>
       <button class="btn" onclick="window.location.href='1stYear/DS/index10.html'">CSE DS</button>
       <button class="btn" onclick="window.location.href='1stYear/AIML/index10.html'">CSE AIML</button>
-      <button class="btn" onclick="window.location.href='1stYear/AM/index10.html'">CSE AM</button> 
+      <button class="btn" onclick="window.location.href='1stYear/AM/index10.html'">CSE AM</button>
     </div>
 
     <div class="container">
@@ -121,46 +169,16 @@
       <h2>3rd Year</h2>
       <button class="btn" onclick="window.location.href='3rdYear/CSE/index10.html'">CSE</button>
       <button class="btn" onclick="window.location.href='3rdYear/DS/index10.html'">CSE DS</button>
-     
     </div>
-
-    <!-- <div class="container">
-      <h2>4th Year</h2>
-      <button class="btn" onclick="redirect('cse-4')">CSE</button>
-      <button class="btn" onclick="redirect('cse-ds-4')">CSE DS</button>
-      
-    </div> -->
-    <a href="https://github.com/webdevcrrao-del/College-Attendance/releases/download/v1.0/Attendance.apk"
-   style="
-     display:inline-block;
-     background: linear-gradient(135deg, #005bea, #00c6fb);
-     color: white;
-     padding: 14px 26px;
-     font-size: 20px;
-     font-weight: 600;
-     border-radius: 10px;
-     text-decoration: none;
-     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-     transition: 0.25s;
-   "
-   onmouseover="this.style.transform='scale(1.06)'; this.style.boxShadow='0 6px 18px rgba(0,0,0,0.35)';"
-   onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.25)';">
-   📥 Download Attendance App (Android)
-</a>
-
-
-
   </main>
 
+  <div style="text-align:center;">
+    <a href="attendance.apk" download class="download">Download Android App</a>
+  </div>
+
   <footer>
-    &copy; 2025 College Attendance System
+    © 2025 College Attendance System
   </footer>
 
-  <script>
-    function redirect(page){
-      // Example: you can change this mapping to real pages per branch/year
-      window.location.href = page + ".html";
-    }
-  </script>
 </body>
 </html>
