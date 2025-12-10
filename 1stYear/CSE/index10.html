@@ -3,10 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="script-src * 'unsafe-inline' 'unsafe-eval'">
-  <meta name="referrer" content="no-referrer">
-
-  
   <title>Attendance System For CSE(DS)</title>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
@@ -194,11 +190,6 @@
   <button onclick="window.location.href='chatbot.html'">
   🤖 Attendance Chatbot
 </button>
-      <button onclick="console.log('video element:', document.getElementById('camera-preview'))">
-Check Video Element
-</button>
-
-
     </div>
     <!-- MOBILE CAMERA BUTTON (Only visible on mobile devices) -->
 <div id="mobile-camera-box" style="display:none; text-align:center; margin-top:20px;">
@@ -207,13 +198,10 @@ Check Video Element
     style="padding:14px 22px; background:#2563eb; color:white; border-radius:10px; border:none; font-size:1.1rem; font-weight:600;">
     📷 Open Camera to Scan QR
   </button>
-  <div id="camera-preview-box" style="display:none;">
-  <video id="camera-preview" autoplay playsinline muted style="width:100%; max-height:400px;"></video>
-</div>
 
-
-
-  
+  <div style="margin-top:15px; display:none;" id="camera-preview-box">
+    <video id="camera-preview" autoplay playsinline style="max-width:100%; border-radius:10px;"></video>
+  </div>
 </div>
 
 
@@ -301,65 +289,14 @@ Check Video Element
     </div>
   </div>
 </div>
-<script>
-  function isMobile() {
-    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  }
 
-  // Show camera button ONLY for viewers on mobile
-  window.addEventListener("load", () => {
-    const viewerMode = true;  // You can set this based on your login role
-
-    if (isMobile() && viewerMode) {
-      document.getElementById("mobile-camera-box").style.display = "block";
-    }
-  });
-
-  // Open camera function
-  async function openMobileCamera() {
-  const video = document.getElementById("camera-preview");
-  const previewBox = document.getElementById("camera-preview-box");
-
-  try {
-    console.log("Requesting camera access...");
-
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" }
-    });
-
-    console.log("Stream acquired:", stream);
-
-    // WebView autoplay fix
-    video.muted = true;
-    video.playsInline = true;
-
-    // Attach stream
-    video.srcObject = stream;
-
-    // Show UI *before* playing
-    previewBox.style.display = "block";
-
-    // Required for Android WebView
-    video.onloadedmetadata = () => {
-      console.log("Metadata loaded, starting video...");
-      video.play().catch(err => console.log("play() failed:", err));
-    };
-
-  } catch (err) {
-    console.error("Camera error:", err);
-    alert("Could not open camera: " + err.message);
-  }
-}
-
-  </script>
 <!-- QR library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-MnQnQf9O9Vf6xNmKxN0h7Qb0sN7c5F6aFqbKp1q5mHcK2lYt8nqf3zZbX2p8n2l0J3O7yZQ0Nw7Qx9mDxQ8Zig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <!-- Google reCAPTCHA -->
   <!-- <script src="https://www.google.com/recaptcha/api.js" async defer></script>   -->
 
-<!-- <script type="module"> -->
-  <script>
+<script type="module">
 
     // Replace with your PC's local IP
 const pcIP = "192.168.1.5"; // Change to your actual IPv4 address
@@ -372,9 +309,9 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   /*************************************
    * Firebase SDKs (v9 modular)
    *************************************/
-  // import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-  // import { getFirestore, doc, setDoc, getDoc, getDocs, collection, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-  // import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, getDocs, collection, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
  const firebaseConfig = {
   apiKey: "AIzaSyBheBBqf__GHWeD7DaLQzIjJDu3n-7srY8",
@@ -386,13 +323,9 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   measurementId: "G-QNJ7HWYS8L"
 };
 
-    firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
-
-  // const app = initializeApp(firebaseConfig);
-  // const db = getFirestore(app);
-  // const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
 
   /*************************************
    * CONFIG: classroom defaults (override via "Use my current location")
@@ -506,9 +439,36 @@ const auth = firebase.auth();
   let activeSessionRef = null;
   let qrcode = null;
 // Detect if user is on mobile
-  
+  function isMobile() {
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
 
+  // Show camera button ONLY for viewers on mobile
+  window.addEventListener("load", () => {
+    const viewerMode = true;  // You can set this based on your login role
 
+    if (isMobile() && viewerMode) {
+      document.getElementById("mobile-camera-box").style.display = "block";
+    }
+  });
+
+  // Open camera function
+  async function openMobileCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" }  // back camera
+      });
+
+      const video = document.getElementById("camera-preview");
+      const previewBox = document.getElementById("camera-preview-box");
+
+      video.srcObject = stream;
+      previewBox.style.display = "block";
+
+    } catch (err) {
+      alert("Camera access denied or not supported: " + err);
+    }
+  }
   /*************************************
    * AUTO-UPDATE SYSTEM
    *************************************/
@@ -762,7 +722,6 @@ function updateTableWithChanges(newData) {
   function showApp() {
     loginSection.classList.add('hidden');
     attendanceSection.classList.remove('hidden');
-      if (isMobile()) document.getElementById("mobile-camera-box").style.display = "block";
 
     populateDayDropdown();
     dateSelect.value = new Date().toISOString().split('T')[0];
