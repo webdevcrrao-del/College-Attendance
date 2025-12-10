@@ -300,57 +300,7 @@ Check Video Element
     </div>
   </div>
 </div>
-<script>
-  function isMobile() {
-    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  }
 
-  // Show camera button ONLY for viewers on mobile
-  window.addEventListener("load", () => {
-    const viewerMode = true;  // You can set this based on your login role
-
-    if (isMobile() && viewerMode) {
-      document.getElementById("mobile-camera-box").style.display = "block";
-    }
-  });
-
-  // Open camera function
-  async function openMobileCamera() {
-  const video = document.getElementById("camera-preview");
-  const previewBox = document.getElementById("camera-preview-box");
-
-  try {
-    console.log("Requesting camera access...");
-
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" }
-    });
-
-    console.log("Stream acquired:", stream);
-
-    // WebView autoplay fix
-    video.muted = true;
-    video.playsInline = true;
-
-    // Attach stream
-    video.srcObject = stream;
-
-    // Show UI *before* playing
-    previewBox.style.display = "block";
-
-    // Required for Android WebView
-    video.onloadedmetadata = () => {
-      console.log("Metadata loaded, starting video...");
-      video.play().catch(err => console.log("play() failed:", err));
-    };
-
-  } catch (err) {
-    console.error("Camera error:", err);
-    alert("Could not open camera: " + err.message);
-  }
-}
-
-  </script>
 <!-- QR library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-MnQnQf9O9Vf6xNmKxN0h7Qb0sN7c5F6aFqbKp1q5mHcK2lYt8nqf3zZbX2p8n2l0J3O7yZQ0Nw7Qx9mDxQ8Zig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
@@ -503,7 +453,54 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   let activeSessionRef = null;
   let qrcode = null;
 // Detect if user is on mobile
-  
+  function isMobile() {
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+
+  // Show camera button ONLY for viewers on mobile
+  window.addEventListener("load", () => {
+    const viewerMode = true;  // You can set this based on your login role
+
+    if (isMobile() && viewerMode) {
+      document.getElementById("mobile-camera-box").style.display = "block";
+    }
+  });
+
+  // Open camera function
+  async function openMobileCamera() {
+  const video = document.getElementById("camera-preview");
+  const previewBox = document.getElementById("camera-preview-box");
+
+  try {
+    console.log("Requesting camera access...");
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" }
+    });
+
+    console.log("Stream acquired:", stream);
+
+    // WebView autoplay fix
+    video.muted = true;
+    video.playsInline = true;
+
+    // Attach stream
+    video.srcObject = stream;
+
+    // Show UI *before* playing
+    previewBox.style.display = "block";
+
+    // Required for Android WebView
+    video.onloadedmetadata = () => {
+      console.log("Metadata loaded, starting video...");
+      video.play().catch(err => console.log("play() failed:", err));
+    };
+
+  } catch (err) {
+    console.error("Camera error:", err);
+    alert("Could not open camera: " + err.message);
+  }
+}
 
 
   /*************************************
