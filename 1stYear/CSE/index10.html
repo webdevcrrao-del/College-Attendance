@@ -357,7 +357,8 @@ Check Video Element
 <!-- Google reCAPTCHA -->
   <!-- <script src="https://www.google.com/recaptcha/api.js" async defer></script>   -->
 
-<script type="module">
+<!-- <script type="module"> -->
+  <script>
 
     // Replace with your PC's local IP
 const pcIP = "192.168.1.5"; // Change to your actual IPv4 address
@@ -384,7 +385,11 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   measurementId: "G-QNJ7HWYS8L"
 };
 
-  const app = initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+  // const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
 
