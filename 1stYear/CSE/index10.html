@@ -193,11 +193,10 @@
   <button onclick="window.location.href='chatbot.html'">
   🤖 Attendance Chatbot
 </button>
-      <button onclick="navigator.mediaDevices.getUserMedia({video:true})
-.then(x=>alert('Camera works'))
-.catch(e=>alert(e))">
-TEST CAMERA
+      <button onclick="console.log('video element:', document.getElementById('camera-preview'))">
+Check Video Element
 </button>
+
 
     </div>
     <!-- MOBILE CAMERA BUTTON (Only visible on mobile devices) -->
