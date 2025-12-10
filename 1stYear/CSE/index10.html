@@ -198,6 +198,10 @@
     style="padding:14px 22px; background:#2563eb; color:white; border-radius:10px; border:none; font-size:1.1rem; font-weight:600;">
     📷 Open Camera to Scan QR
   </button>
+  <div id="camera-preview-box" style="display:none;">
+  <video id="camera-preview" autoplay playsinline style="width:100%; max-height:400px;"></video>
+</div>
+
 
   <div style="margin-top:15px; display:none;" id="camera-preview-box">
     <video id="camera-preview" autoplay playsinline style="max-width:100%; border-radius:10px;"></video>
@@ -454,21 +458,21 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
 
   // Open camera function
   async function openMobileCamera() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }  // back camera
-      });
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" }
+    });
 
-      const video = document.getElementById("camera-preview");
-      const previewBox = document.getElementById("camera-preview-box");
+    let video = document.getElementById("camera-preview");
+    let previewBox = document.getElementById("camera-preview-box");
 
-      video.srcObject = stream;
-      previewBox.style.display = "block";
-
-    } catch (err) {
-      alert("Camera access denied or not supported: " + err);
-    }
+    video.srcObject = stream;
+    previewBox.style.display = "block";
+  } catch (err) {
+    alert("Camera access denied or not supported: " + err.message);
   }
+}
+
   /*************************************
    * AUTO-UPDATE SYSTEM
    *************************************/
