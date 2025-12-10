@@ -468,64 +468,38 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   async function openMobileCamera() {
   const video = document.getElementById("camera-preview");
   const previewBox = document.getElementById("camera-preview-box");
-  const stopId = "mobile-camera-stop-btn";
 
   try {
-    console.log("Requesting camera...");
+    console.log("Requesting camera access...");
+
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { exact: "environment" } } // try back camera first
-    }).catch(async (err) => {
-      // fallback if exact facingMode not available
-      console.warn("Exact facingMode failed, falling back to default camera:", err);
-      return await navigator.mediaDevices.getUserMedia({ video: true });
+      video: { facingMode: "environment" }
     });
 
-    console.log("Got stream:", stream);
-    // mute so autoplay won't be blocked
+    console.log("Stream acquired:", stream);
+
+    // WebView autoplay fix
     video.muted = true;
     video.playsInline = true;
-    video.autoplay = true;
 
-    // attach stream
-    try {
-      video.srcObject = stream;
-    } catch (e) {
-      // legacy fallback (shouldn't normally be needed)
-      video.src = URL.createObjectURL(stream);
-    }
+    // Attach stream
+    video.srcObject = stream;
 
-    // show preview container
+    // Show UI *before* playing
     previewBox.style.display = "block";
 
-    // ensure playback starts
-    const playResult = await video.play().catch(err => {
-      console.warn("video.play() failed:", err);
-      return null;
-    });
-
-    console.log("video readyState:", video.readyState, "playResult:", playResult);
-
-    // add a stop button (only one)
-    if (!document.getElementById(stopId)) {
-      const btn = document.createElement("button");
-      btn.id = stopId;
-      btn.textContent = "Stop Camera";
-      btn.style = "margin-top:8px;padding:8px 12px;border-radius:8px;background:#e74c3c;color:white;border:none;cursor:pointer;";
-      btn.onclick = () => {
-        // stop all tracks
-        stream.getTracks().forEach(t => t.stop());
-        video.srcObject = null;
-        previewBox.style.display = "none";
-        btn.remove();
-      };
-      previewBox.appendChild(btn);
-    }
+    // Required for Android WebView
+    video.onloadedmetadata = () => {
+      console.log("Metadata loaded, starting video...");
+      video.play().catch(err => console.log("play() failed:", err));
+    };
 
   } catch (err) {
-    console.error("openMobileCamera error:", err);
-    alert("Camera access denied or not supported: " + (err.message || err));
+    console.error("Camera error:", err);
+    alert("Could not open camera: " + err.message);
   }
 }
+
 
 
   /*************************************
