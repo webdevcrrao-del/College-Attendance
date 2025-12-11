@@ -427,10 +427,12 @@ const auth = getAuth(app);
 
 
   /********************  GROQ CONFIG  ********************/
-  const GROQ_API_KEY = "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"; 
-  const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
-  const GROQ_MODEL = "llama-3.3-70b-versatile";
+  // const GROQ_API_KEY = "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"; 
+  // const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
+  // const GROQ_MODEL = "llama-3.3-70b-versatile";
 
+/********************  WORKER CONFIG  ********************/
+const WORKER_URL = "https://sparkling-cloud-23cc.marananidinesh.workers.dev/";
 
 
  // or "llama-3-70b-8192" depending on your Groq account
@@ -680,106 +682,154 @@ const studentKey = Object.keys(studentStats).find(k => {
 
 
   /********************  GROQ CALL  ********************/
-  async function callGroq(userMessage) {
-    if (!GROQ_API_KEY || !GROQ_API_KEY.startsWith("gsk_")) {
-  return "Groq API key is missing or malformed.";
-}
+//   async function callGroq(userMessage) {
+//     if (!GROQ_API_KEY || !GROQ_API_KEY.startsWith("gsk_")) {
+//   return "Groq API key is missing or malformed.";
+// }
 
 
-    const context = buildContextFiltered(userMessage);
+//     const context = buildContextFiltered(userMessage);
     
-    const contextStr = JSON.stringify(context);
-// hard cap to avoid huge payloads
+//     const contextStr = JSON.stringify(context);
+// // hard cap to avoid huge payloads
 
-    const systemPrompt =
-`You are an Attendance Assistant for a college class.
+//     const systemPrompt =
+// `You are an Attendance Assistant for a college class.
 
-You are given aggregated attendance data in JSON:
-- 'students': list of students with per-subject stats and overall percentage.
-- 'dates': list of class dates with subjects, total present/absent, and absenteesBySubject.
+// You are given aggregated attendance data in JSON:
+// - 'students': list of students with per-subject stats and overall percentage.
+// - 'dates': list of class dates with subjects, total present/absent, and absenteesBySubject.
 
-Capabilities you MUST support:
-1. Attendance summary for the whole class or specific subjects.
-2. Individual student history: per-subject breakdown, overall %, and any low attendance.
-3. Absent list for a given date (and optionally per subject).
+// Capabilities you MUST support:
+// 1. Attendance summary for the whole class or specific subjects.
+// 2. Individual student history: per-subject breakdown, overall %, and any low attendance.
+// 3. Absent list for a given date (and optionally per subject).
 
-Rules:
-- If the user mentions a roll number or student name, match it using 'studentKey'.
-- If the user mentions a specific date (YYYY-MM-DD), match it to 'dates.date'.
-- If you can't find matching data, say so clearly.
-- Show numbers with at most 1 decimal place.
-- Respond in concise, clear English. Use bullet points or small tables when helpful.`;
+// Rules:
+// - If the user mentions a roll number or student name, match it using 'studentKey'.
+// - If the user mentions a specific date (YYYY-MM-DD), match it to 'dates.date'.
+// - If you can't find matching data, say so clearly.
+// - Show numbers with at most 1 decimal place.
+// - Respond in concise, clear English. Use bullet points or small tables when helpful.`;
 
-    const body = {
-  model: GROQ_MODEL,
-  temperature: 0.2,
-  max_tokens: 800,
-  messages: [
-    { role: "system", content: systemPrompt },
-    {
-      role: "user",
-      content:
-`User question: ${userMessage}
+//     const body = {
+//   model: GROQ_MODEL,
+//   temperature: 0.2,
+//   max_tokens: 800,
+//   messages: [
+//     { role: "system", content: systemPrompt },
+//     {
+//       role: "user",
+//       content:
+// `User question: ${userMessage}
 
-ATTENDANCE_DATA:
-${JSON.stringify(context)}`
-    }
-  ]
-};
+// ATTENDANCE_DATA:
+// ${JSON.stringify(context)}`
+//     }
+//   ]
+// };
 
-    const res = await fetch(GROQ_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${GROQ_API_KEY}`
-      },
-      body: JSON.stringify(body)
-    });
+//     const res = await fetch(GROQ_ENDPOINT, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         "Authorization": `Bearer ${GROQ_API_KEY}`
+//       },
+//       body: JSON.stringify(body)
+//     });
 
-    if (!res.ok) {
-  const text = await res.text().catch(() => "");
-  throw new Error(`Groq API error (${res.status}): ${text}`);
-}
-
-
-   const data = await res.json();
-console.log("Groq raw:", JSON.stringify(data, null, 2));
-
-let reply = "";
-
-// Universal content extraction
-const content = data?.choices?.[0]?.message?.content;
-
-// 1) Groq returns content as string
-if (typeof content === "string") {
-  reply = content;
-}
-// 2) Groq returns content as array of text chunks
-else if (Array.isArray(content)) {
-  reply = content.map(c => c?.text || "").join("").trim();
-}
-// 3) Streaming format (delta)
-else if (data?.choices?.[0]?.delta?.content) {
-  reply = data.choices[0].delta.content;
-}
-
-// Last fallback
-if (!reply || reply.trim().length === 0) {
-  reply = "⚠ No response received.";
-}
-
-// Clean up code blocks / JSON dumps if any
-reply = reply
-  .replace(/```[\s\S]*?```/g, "")
-  .replace(/\n{3,}/g, "\n\n")
-  .trim();
-
-return reply;
+//     if (!res.ok) {
+//   const text = await res.text().catch(() => "");
+//   throw new Error(`Groq API error (${res.status}): ${text}`);
+// }
 
 
+//    const data = await res.json();
+// console.log("Groq raw:", JSON.stringify(data, null, 2));
+
+// let reply = "";
+
+// // Universal content extraction
+// const content = data?.choices?.[0]?.message?.content;
+
+// // 1) Groq returns content as string
+// if (typeof content === "string") {
+//   reply = content;
+// }
+// // 2) Groq returns content as array of text chunks
+// else if (Array.isArray(content)) {
+//   reply = content.map(c => c?.text || "").join("").trim();
+// }
+// // 3) Streaming format (delta)
+// else if (data?.choices?.[0]?.delta?.content) {
+//   reply = data.choices[0].delta.content;
+// }
+
+// // Last fallback
+// if (!reply || reply.trim().length === 0) {
+//   reply = "⚠ No response received.";
+// }
+
+// // Clean up code blocks / JSON dumps if any
+// reply = reply
+//   .replace(/```[\s\S]*?```/g, "")
+//   .replace(/\n{3,}/g, "\n\n")
+//   .trim();
+
+// return reply;
 
 
+
+
+//   }
+  async function callGroq(userMessage) {
+
+  // Build attendance context same as before
+  const context = buildContextFiltered(userMessage);
+
+  // Send the request to your Cloudflare Worker (NOT to Groq)
+  const res = await fetch(WORKER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userMessage,
+      context
+    })
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Worker error (${res.status}): ${text}`);
   }
+
+  const data = await res.json();
+  console.log("Worker/Groq raw:", JSON.stringify(data, null, 2));
+
+  let reply = "";
+
+  // Extract the assistant message (same logic as before)
+  const content = data?.choices?.[0]?.message?.content;
+
+  if (typeof content === "string") {
+    reply = content;
+  } else if (Array.isArray(content)) {
+    reply = content.map(c => c?.text || "").join("").trim();
+  } else if (data?.choices?.[0]?.delta?.content) {
+    reply = data.choices[0].delta.content;
+  }
+
+  if (!reply || reply.trim().length === 0) {
+    reply = "⚠ No response received.";
+  }
+
+  reply = reply
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return reply;
+}
+
 
   /********************  SEND HANDLER  ********************/
   async function handleSend() {
@@ -844,3 +894,4 @@ return reply;
 </script>
 </body>
 </html>
+
