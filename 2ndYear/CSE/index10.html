@@ -1118,7 +1118,7 @@ if (currentRole === 'viewer') {
   forgotBtn.addEventListener('click', async () => {
     const email = (document.getElementById('username').value || '').trim();
     if (!email) {
-      loginFeedback.innerHTML = `<div class="notice">Enter your email and click "Forgot password".</div>`;
+      loginFeedback.innerHTML = `<div class="notice">Enter your email and click "Forgot password".Check your Spam</div>`;
       return;
     }
     try {
