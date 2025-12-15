@@ -341,6 +341,44 @@ function renderRows(docs) {
     });
   }
 
+  function getSubjectsWithAnyPresent(attendanceData, selectedSubjects) {
+  if (!attendanceData.subjects || !attendanceData.data) return [];
+
+  const subjects = attendanceData.subjects;
+
+  // Subjects to check (selected OR all)
+  const subjectsToCheck = selectedSubjects.length
+    ? subjects.filter(s => selectedSubjects.includes(s))
+    : subjects;
+
+  // Keep only subjects where at least one student is present
+  return subjectsToCheck.filter((subject, index) => {
+    const actualIndex = subjects.indexOf(subject);
+    return Object.values(attendanceData.data).some(arr =>
+      Array.isArray(arr) && arr[actualIndex] === true
+    );
+  });
+}
+function getSubjectIndexesWithAnyPresent(attendanceData, selectedSubjects) {
+  if (!attendanceData.subjects || !attendanceData.data) return [];
+
+  const subjects = attendanceData.subjects;
+
+  const subjectsToCheck = selectedSubjects.length
+    ? subjects.filter(s => selectedSubjects.includes(s))
+    : subjects;
+
+  return subjectsToCheck
+    .map(subject => subjects.indexOf(subject))
+    .filter(index =>
+      Object.values(attendanceData.data).some(arr =>
+        Array.isArray(arr) && arr[index] === true
+      )
+    );
+}
+
+
+
   async function downloadAttendanceCSV(date) {
     setMsg(`Preparing CSV download for ${date}...`, 'info');
     
@@ -369,16 +407,38 @@ function renderRows(docs) {
       
       const attendanceData = attendanceSnap.data();
       
-      // Create CSV content
-      let csvContent = 'Roll Number,Student Name';
       
-      // Add subject headers
-      if (attendanceData.subjects && Array.isArray(attendanceData.subjects)) {
-        attendanceData.subjects.forEach(subject => {
-          csvContent += `,${subject}`;
-        });
-      }
-      csvContent += ',Present Count,Absent Count,Attendance Percentage\n';
+   // ✅ Selected subjects from filter
+const selectedSubjects =
+  Array.from(subjectFilter.selectedOptions).map(o => o.value);
+
+// ✅ Get subject indexes where at least one student is present
+const finalIndexes =
+  getSubjectIndexesWithAnyPresent(attendanceData, selectedSubjects);
+  if (finalIndexes.length === 0) {
+  setMsg(
+    'No subjects found where at least one student is present. CSV not generated.',
+    'err'
+  );
+  return;
+}
+
+
+// ✅ Final subject names for CSV
+const finalSubjects = finalIndexes.map(i => attendanceData.subjects[i]);
+
+// ✅ Create CSV header
+let csvContent = 'Roll Number,Student Name';
+
+finalSubjects.forEach(subject => {
+  csvContent += `,${subject}`;
+});
+
+csvContent += ',Present Count,Absent Count,Attendance Percentage\n';
+
+
+
+
       
       // Add student data from the 'data' map
       if (attendanceData.data) {
@@ -397,26 +457,34 @@ function renderRows(docs) {
           
           // Add attendance status for each subject
           if (attendanceData.subjects && Array.isArray(attendanceData.subjects)) {
-            attendanceData.subjects.forEach((subject, index) => {
-              // attendanceArray should be an array of booleans
-              const attendanceValue = Array.isArray(attendanceArray) && 
-                                    attendanceArray[index] !== undefined ? 
-                                    attendanceArray[index] : null;
-              
-              let status = 'Not Marked';
-              if (attendanceValue === true) {
-                status = 'Present';
-                presentCount++;
-                totalSubjects++;
-              } else if (attendanceValue === false) {
-                status = 'Absent';
-                totalSubjects++;
-              }
-              
-              csvContent += `,"${status}"`;
-            });
+
+
+// Add attendance status ONLY for selected subjects
+finalIndexes.forEach(index => {
+  const attendanceValue =
+    Array.isArray(attendanceArray) && attendanceArray[index] !== undefined
+      ? attendanceArray[index]
+      : null;
+
+  let status = 'Not Marked';
+  if (attendanceValue === true) {
+    status = 'Present';
+    presentCount++;
+    totalSubjects++;
+  } else if (attendanceValue === false) {
+    status = 'Absent';
+    totalSubjects++;
+  }
+
+  csvContent += `,"${status}"`;
+});
+
+
           }
-          
+          if (totalSubjects === 0) {
+  return; // skip this student
+}
+
           // Calculate attendance percentage
           const percentage = totalSubjects > 0 ? ((presentCount / totalSubjects) * 100).toFixed(1) : 0;
           
