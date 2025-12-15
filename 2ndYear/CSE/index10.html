@@ -899,12 +899,17 @@ function buildTable(subjects, existingData = {}) {
 headerHTML += `
   <th class="subject-header">
     ${subjectName}
-    <button class="select-all-btn" 
-            data-subject-index="${subjectIndex}" 
-            onclick="toggleSelectAll(${subjectIndex})">
-      Select All
-    </button>
+    ${
+      currentRole === 'teacher'
+        ? `<button class="select-all-btn"
+              data-subject-index="${subjectIndex}"
+              onclick="toggleSelectAll(${subjectIndex})">
+            Select All
+          </button>`
+        : ''
+    }
   </th>`;
+
 tableHeader.innerHTML = headerHTML;
 
 
