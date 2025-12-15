@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Attendance Chatbot Assistant</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --ink: #111827;
+      --ink-2: #374151;
+      --brand: #2563eb;
+      --brand-dark: #1d4ed8;
+      --user: #0f766e;
+      --bot: #111827;
+      --card: #ffffff;
+      --border: #e5e7eb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at top, #dbeafe 0, #f4f6fb 60%);
+      min-height: 100vh;
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #0f172a;
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.5);
+    }
+
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    header .sub {
+      font-size: 0.85rem;
+      opacity: 0.85;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all .2s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn.primary { background: #2563eb; color: white; }
+    .btn.primary:hover { background: #1d4ed8; }
+    .btn.outline { background: transparent; color: white; border: 1px solid rgba(148, 163, 184, .6); }
+    .btn.outline:hover { background: rgba(15, 23, 42, .7); }
+
+    .container {
+      max-width: 960px;
+      width: 100%;
+      margin: 20px auto;
+      padding: 0 12px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, .15);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 120px);
+      max-height: 780px;
+    }
+
+    .card-header {
+      padding: 16px 20px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .title-block h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--ink-2);
+    }
+
+    .title-block p {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #bbf7d0;
+    }
+
+    .small {
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+
+    .chip:hover {
+      background: #dbeafe;
+      transform: translateY(-1px);
+    }
+
+    .status {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .status-line {
+      font-size: 0.75rem;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+    }
+
+    .status-secondary {
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+
+    .chat-window {
+      flex: 1;
+      padding: 14px 16px;
+      overflow-y: auto;
+      background: radial-gradient(circle at top left, #eff6ff 0, #f9fafb 45%);
+    }
+
+    .message {
+      max-width: 78%;
+      padding: 10px 13px;
+      border-radius: 14px;
+      margin-bottom: 8px;
+      line-height: 1.45;
+      font-size: 0.92rem;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    .msg-row {
+      display: flex;
+      margin-bottom: 4px;
+    }
+
+    .msg-row.user {
+      justify-content: flex-end;
+    }
+
+    .msg-row.bot {
+      justify-content: flex-start;
+    }
+
+    .message.user {
+      background: #0f766e;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.bot {
+      background: white;
+      color: var(--bot);
+      border: 1px solid #e5e7eb;
+      border-bottom-left-radius: 4px;
+    }
+
+    .bubble-label {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      margin: 0 4px 2px;
+    }
+
+    .msg-row.user .bubble-label {
+      text-align: right;
+    }
+
+    .typing {
+      display: inline-flex;
+      gap: 3px;
+    }
+
+    .typing span {
+      width: 4px;
+      height: 4px;
+      border-radius: 999px;
+      background: #9ca3af;
+      animation: bounce 1s infinite;
+    }
+
+    .typing span:nth-child(2) { animation-delay: .15s; }
+    .typing span:nth-child(3) { animation-delay: .3s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: .5; }
+      40% { transform: translateY(-4px); opacity: 1; }
+    }
+
+    .chat-footer {
+      padding: 10px 14px 12px;
+      border-top: 1px solid var(--border);
+      background: #f9fafb;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    textarea {
+      flex: 1;
+      resize: none;
+      min-height: 42px;
+      max-height: 120px;
+      padding: 9px 11px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      font-family: inherit;
+      font-size: 0.92rem;
+      outline: none;
+      transition: all .15s ease;
+      background: white;
+    }
+
+    textarea:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
+    }
+
+    .send-btn {
+      border-radius: 999px;
+      padding: 9px 14px;
+      border: none;
+      background: var(--brand);
+      color: white;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all .15s ease;
+    }
+
+    .send-btn:hover { background: var(--brand-dark); transform: translateY(-1px); }
+    .send-btn:disabled { opacity: .6; cursor: default; transform: none; }
+
+    .footer-hint {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .kbd {
+      background: #111827;
+      color: #e5e7eb;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 0.7rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    @media (max-width: 768px) {
+      .card {
+        height: calc(100vh - 100px);
+        border-radius: 14px;
+      }
+      .message { max-width: 90%; }
+    }
+  </style>
+</head>
+<body>
+<header>
+ 
+
+  <div>
+    <h1>Attendance Chatbot Assistant</h1>
+    <div class="sub">Ask anything about your class attendance records.</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn outline" onclick="window.location.href='index10.html'">⬅ Back to Dashboard</button>
+  </div>
+</header>
+ <!-- LOGIN SECTION (hidden by default) -->
+<div id="login-section" style="display:none;">
+  <div style="
+    max-width:420px;
+    margin:40px auto;
+    background:white;
+    padding:24px;
+    border-radius:16px;
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
+    text-align:center;
+  ">
+    <h2 style="margin-bottom:10px;">Teacher Login</h2>
+    <p style="font-size:0.85rem;color:#6b7280;margin-bottom:16px;">
+      Please login to access the Attendance Chatbot
+    </p>
+
+    <input id="login-email" type="email" placeholder="Email"
+      style="width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;margin-bottom:10px;" />
+
+    <input id="login-password" type="password" placeholder="Password"
+      style="width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;margin-bottom:14px;" />
+
+    <button id="login-btn"
+      style="width:100%;padding:10px;border-radius:999px;border:none;
+      background:#2563eb;color:white;font-weight:600;cursor:pointer;">
+      Login
+    </button>
+
+    <div id="login-error" style="margin-top:10px;color:#ef4444;font-size:0.8rem;"></div>
+  </div>
+</div>
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <div class="title-block">
+        <h2>Chat with your Attendance AI</h2>
+        <p>
+          Connected to your Firestore <strong>attendance</strong> collection.
+          Ask for summaries, student history, or absent lists.
+        </p>
+        <div class="examples">
+          <div class="chip" data-example="Give me a summary of overall attendance.">Overall summary</div>
+          <div class="chip" data-example="Show attendance details for BT25CS01 - BHAGAM JAITHRA PRANAV.">Specific student</div>
+          <div class="chip" data-example="Who was absent on 2025-12-07?">Absent list by date</div>
+          <div class="chip" data-example="Which subjects does SAGI VEDESH have low attendance in?">Low attendance</div>
+        </div>
+      </div>
+      <div class="status">
+        <div class="status-line">
+          <span class="dot" id="load-dot"></span>
+          <span id="load-status">Loading attendance data…</span>
+        </div>
+        <div class="status-secondary" id="load-secondary">
+          Connecting to Firestore & preparing summary.
+        </div>
+        <div class="badge">
+          <span>⚙</span> Model: Llama-3-70B (via Groq)
+        </div>
+      </div>
+    </div>
+
+    <div id="chat-window" class="chat-window"></div>
+
+    <div class="chat-footer">
+      <div class="input-row">
+        <textarea id="user-input" placeholder="Ask about attendance… (e.g., ‘Show absent students on 2025-12-07’)" rows="1"></textarea>
+        <button id="send-btn" class="send-btn">
+          <span>Send</span> ➤
+        </button>
+      </div>
+      <div class="footer-hint">
+        <span>Press <span class="kbd">Enter</span> to send &nbsp;•&nbsp; <span class="kbd">Shift + Enter</span> for a new line</span>
+        <span id="token-hint">Your data stays in this browser + Firestore.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase + Groq logic -->
+<script type="module">
+  /********************  FIREBASE CONFIG  ********************/
+    import { doc, getDoc } from 
+  "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { 
+    getFirestore, collection, getDocs 
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  // Use the same Firebase project that stores your attendance collection
+  // (this matches your existing attendance pages)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBheBBqf__GHWeD7DaLQzIjJDu3n-7srY8",
+    authDomain: "college-attendance-435d2.firebaseapp.com",
+    projectId: "college-attendance-435d2",
+    storageBucket: "college-attendance-435d2.firebasestorage.app",
+    messagingSenderId: "322925751663",
+    appId: "1:322925751663:web:4e2f75c2041cb88988cc9a",
+    measurementId: "G-QNJ7HWYS8L"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+ import { 
+  getAuth, 
+  onAuthStateChanged, 
+  signOut,
+  signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+
+
+
+const auth = getAuth(app);
+
+
+  /********************  GROQ CONFIG  ********************/
+  // const GROQ_API_KEY = "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"; 
+  // const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
+  // const GROQ_MODEL = "llama-3.3-70b-versatile";
+
+/********************  WORKER CONFIG  ********************/
+const WORKER_URL = "https://sparkling-cloud-23cc.marananidinesh.workers.dev/";
+
+
+ // or "llama-3-70b-8192" depending on your Groq account
+
+  /********************  DOM SHORTCUTS  ********************/
+  const chatWindow   = document.getElementById("chat-window");
+  const userInput    = document.getElementById("user-input");
+  const sendBtn      = document.getElementById("send-btn");
+  const loadDot      = document.getElementById("load-dot");
+  const loadStatus   = document.getElementById("load-status");
+  const loadSecondary= document.getElementById("load-secondary");
+  const loginSection = document.getElementById("login-section");
+const loginBtn = document.getElementById("login-btn");
+const loginError = document.getElementById("login-error");
+
+loginBtn.addEventListener("click", async () => {
+  const email = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-password").value.trim();
+
+  loginError.textContent = "";
+
+  if (!email || !password) {
+    loginError.textContent = "Please enter email and password.";
+    return;
+  }
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    loginSection.style.display = "none";
+  } catch (err) {
+    loginError.textContent = err.message;
+  }
+});
+
+
+  /********************  ATTENDANCE CACHE  ********************/
+  let attendanceDocs = [];   // raw docs from Firestore
+  let studentStats   = {};   // computed per-student aggregates
+  let dateStats      = {};   // per-date absent & counts
+  let dataReady      = false;
+
+  function log(...args) { console.log("[Chatbot]", ...args); }
+
+  /********************  UI HELPERS  ********************/
+ function addMessage(text, role = "bot") {
+  const label = document.createElement("div");
+  label.className = "bubble-label";
+  label.textContent = role === "user" ? "You" : "Attendance AI";
+
+  const row = document.createElement("div");
+  row.className = `msg-row ${role}`;
+
+  const bubble = document.createElement("div");
+  bubble.className = `message ${role}`;
+  bubble.textContent = text;
+
+  // Correct DOM order
+  row.appendChild(bubble);
+  const wrapper = document.createElement("div");
+  wrapper.appendChild(label);
+  wrapper.appendChild(row);
+
+  chatWindow.appendChild(wrapper);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+
+  let typingEl = null;
+  function showTyping() {
+  if (typingEl) return;
+
+  const label = document.createElement("div");
+  label.className = "bubble-label";
+  label.textContent = "Attendance AI";
+
+  const row = document.createElement("div");
+  row.className = "msg-row bot";
+
+  const bubble = document.createElement("div");
+  bubble.className = "message bot";
+  bubble.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+
+  row.appendChild(bubble);
+
+  typingEl = document.createElement("div");
+  typingEl.appendChild(label);
+  typingEl.appendChild(row);
+
+  chatWindow.appendChild(typingEl);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+
+  function hideTyping() {
+  if (!typingEl) return;
+  typingEl.remove();
+  typingEl = null;
+}
+
+function clearChat() {
+  chatWindow.innerHTML = "";
+  dataReady = false;
+}
+
+  /********************  ATTENDANCE LOADING & STATS  ********************/
+ onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    clearChat();
+  loginSection.style.display = "block";
+  document.querySelector(".container").style.display = "none";
+  loadStatus.textContent = "Please login";
+  loadDot.style.background = "#ef4444";
+  return;
+  }
+
+  // User logged in → check role
+  try {
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+
+    if (!userDoc.exists() || userDoc.data().role !== "teacher") {
+  loginSection.style.display = "none";
+  document.querySelector(".container").style.display = "none";
+
+  alert("Access denied: Only teachers can use the Attendance Chatbot.");
+  return;
+}
+
+
+    // ✅ Teacher confirmed
+    loginSection.style.display = "none";
+    document.querySelector(".container").style.display = "flex";
+    // ✅ Teacher confirmed
+loginSection.style.display = "none";
+document.querySelector(".container").style.display = "flex";
+
+addMessage(
+  "Hi! I'm your Attendance Assistant 👋\n\n" +
+  "You can ask things like:\n" +
+  "• Overall attendance summary\n" +
+  "• Student-wise attendance\n" +
+  "• Absent list by date\n" +
+  "• Students below 75%",
+  "bot"
+);
+
+
+
+    loadAttendance();
+
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+
+  async function loadAttendance() {
+    try {
+      const snap = await getDocs(collection(db, "attendance"));
+      attendanceDocs = [];
+      snap.forEach(docSnap => {
+        const data = docSnap.data();
+        attendanceDocs.push({
+          id: docSnap.id,
+          ...data
+        });
+      });
+
+      computeStats();
+      dataReady = true;
+
+      const totalDays = Object.keys(dateStats).length;
+      const totalStudents = Object.keys(studentStats).length;
+
+      loadDot.style.background = "#22c55e";
+      loadDot.style.boxShadow = "0 0 0 4px rgba(34,197,94,0.25)";
+      loadStatus.textContent = `Attendance loaded: ${totalDays} class days, ${totalStudents} students`;
+      loadSecondary.textContent = "You can now ask about attendance summary, specific students, or absentees.";
+      log("Attendance loaded", { totalDays, totalStudents });
+    } catch (err) {
+      console.error(err);
+      loadDot.style.background = "#ef4444";
+      loadDot.style.boxShadow = "0 0 0 4px rgba(248,113,113,0.25)";
+      loadStatus.textContent = "Failed to load attendance data";
+      loadSecondary.textContent = err.message || String(err);
+    }
+  }
+
+  function computeStats() {
+    studentStats = {};
+    dateStats = {};
+
+    for (const doc of attendanceDocs) {
+      const date   = doc.date || (doc.id.split("_")[1] || doc.id);
+      const day    = doc.day  || "";
+      const subs   = Array.isArray(doc.subjects) ? doc.subjects : [];
+      const data   = doc.data || {};
+
+      if (!dateStats[date]) {
+        dateStats[date] = {
+          day,
+          subjects: subs,
+          totalPresent: 0,
+          totalAbsent: 0,
+          absenteesBySubject: {}
+        };
+        subs.forEach(s => { dateStats[date].absenteesBySubject[s] = []; });
+      }
+
+      for (const [studentKey, flagsRaw] of Object.entries(data)) {
+        if (!studentStats[studentKey]) {
+          studentStats[studentKey] = {
+            perSubject: {},
+            totalPresent: 0,
+            totalClasses: 0
+          };
+        }
+        const flags = Array.isArray(flagsRaw) ? flagsRaw : [flagsRaw];
+
+        subs.forEach((sub, idx) => {
+          const present = !!flags[idx];
+          if (!studentStats[studentKey].perSubject[sub]) {
+            studentStats[studentKey].perSubject[sub] = { present: 0, total: 0 };
+          }
+          const subjStat = studentStats[studentKey].perSubject[sub];
+          subjStat.total++;
+          studentStats[studentKey].totalClasses++;
+
+          if (present) {
+            subjStat.present++;
+            studentStats[studentKey].totalPresent++;
+            dateStats[date].totalPresent++;
+          } else {
+            dateStats[date].totalAbsent++;
+            dateStats[date].absenteesBySubject[sub].push(studentKey);
+          }
+        });
+      }
+    }
+
+    log("Computed stats", { studentStats, dateStats });
+  }
+
+ function buildContextFiltered(userMessage) {
+  const lower = userMessage.toLowerCase();
+  const ctx = { generatedAt: new Date().toISOString() };
+
+  // If user mentions a specific date
+  const dateMatch = lower.match(/\d{4}-\d{2}-\d{2}/);
+  if (dateMatch) {
+    const date = dateMatch[0];
+    ctx.dates = dateStats[date] ? [{ date, ...dateStats[date] }] : [];
+    return ctx;
+  }
+
+  // If user mentions a student (roll number / name)
+  // Fuzzy matching for student name / roll number
+const studentKey = Object.keys(studentStats).find(k => {
+  const l = lower.replace(/\s+/g, ""); // remove spaces
+  return l.includes(k.toLowerCase().replace(/\s+/g, ""))  // full key (roll + name)
+    || l.includes(k.split("-")[0].toLowerCase())          // roll only
+    || l.includes(k.split("-")[1]?.toLowerCase().trim()); // name only
+});
+
+  if (studentKey) {
+    ctx.students = [
+  {
+    studentKey,
+    ...studentStats[studentKey]
+  }
+];
+
+    return ctx;
+  }
+
+  // If user mentions "summary" or "low attendance"
+  if (lower.includes("summary") || lower.includes("overall")) {
+  ctx.summary = Object.entries(studentStats).map(([studentKey, s]) => {
+    const percent = (s.totalPresent / s.totalClasses) * 100;
+    return {
+      studentKey,
+      overallPercent: Number(percent.toFixed(1))
+    };
+  });
+  return ctx;
+}
+
+
+  // Default fallback: lightweight dataset
+  ctx.students = Object.entries(studentStats)
+  .slice(0, 50)
+  .map(([studentKey, s]) => ({ studentKey, ...s }));
+
+  ctx.dates = Object.keys(dateStats).slice(0, 20);
+  return ctx;
+}
+
+
+ 
+  async function callGroq(userMessage) {
+
+  // Build attendance context same as before
+  const context = buildContextFiltered(userMessage);
+
+  // Send the request to your Cloudflare Worker (NOT to Groq)
+  const res = await fetch(WORKER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userMessage,
+      context
+    })
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Worker error (${res.status}): ${text}`);
+  }
+
+  const data = await res.json();
+  console.log("Worker/Groq raw:", JSON.stringify(data, null, 2));
+
+  let reply = "";
+
+  // Extract the assistant message (same logic as before)
+  const content = data?.choices?.[0]?.message?.content;
+
+  if (typeof content === "string") {
+    reply = content;
+  } else if (Array.isArray(content)) {
+    reply = content.map(c => c?.text || "").join("").trim();
+  } else if (data?.choices?.[0]?.delta?.content) {
+    reply = data.choices[0].delta.content;
+  }
+
+  if (!reply || reply.trim().length === 0) {
+    reply = "⚠ No response received.";
+  }
+
+  reply = reply
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return reply;
+}
+
+
+  /********************  SEND HANDLER  ********************/
+  async function handleSend() {
+    const text = userInput.value.trim();
+    if (!text) return;
+    if (!dataReady) {
+      addMessage("Attendance data is still loading. Please wait a moment and try again.", "bot");
+      return;
+    }
+
+    addMessage(text, "user");
+    userInput.value = "";
+    showTyping();
+    sendBtn.disabled = true;
+
+    try {
+      const answer = await callGroq(text);
+      hideTyping();
+      addMessage(answer, "bot");
+    } catch (err) {
+      console.error(err);
+      hideTyping();
+      addMessage("Error while contacting Groq: " + (err.message || String(err)), "bot");
+    } finally {
+      sendBtn.disabled = false;
+      userInput.focus();
+    }
+  }
+
+  /********************  EVENT LISTENERS  ********************/
+  sendBtn.addEventListener("click", handleSend);
+
+  userInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  });
+
+  // Example prompt chips
+  document.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const text = chip.getAttribute("data-example");
+      userInput.value = text;
+      userInput.focus();
+    });
+  });
+
+  /********************  INITIAL SETUP  ********************/
+  // Initial greeting
+ 
+
+  loadAttendance();
+</script>
+</body>
+</html>

@@ -128,6 +128,8 @@
       position: relative;
       padding-bottom: 40px;
     }
+    
+    
   </style>
 </head>
 <body>
@@ -143,7 +145,6 @@
 </div>
 
 <div class="container">
-
   <!-- LOGIN -->
   <div id="login-section">
     <h2>Secure Login</h2>
@@ -179,14 +180,30 @@
     <div id="missing-role" class="error" style="display:none;"></div>
 
     <div class="row">
-      
+
       <label>Saved Records: <select required id="saved-dates"></select></label>
       <button id="logout-btn" class="danger-btn">Logout</button>
       <button onclick="window.location.href='private.html'" 
           style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
     Click to Check your Attendance
   </button>
+  <button onclick="window.location.href='chatbot.html'">
+  🤖 Attendance Chatbot
+</button>
     </div>
+    <!-- MOBILE CAMERA BUTTON (Only visible on mobile devices) -->
+<div id="mobile-camera-box" style="display:none; text-align:center; margin-top:20px;">
+  <button 
+    onclick="openMobileCamera()" 
+    style="padding:14px 22px; background:#2563eb; color:white; border-radius:10px; border:none; font-size:1.1rem; font-weight:600;">
+    📷 Open Camera to Scan QR
+  </button>
+
+  <div style="margin-top:15px; display:none;" id="camera-preview-box">
+    <video id="camera-preview" autoplay playsinline style="max-width:100%; border-radius:10px;"></video>
+  </div>
+</div>
+
 
     <!-- TEACHER: Start QR Session -->
        
@@ -210,7 +227,7 @@
         <label>Subject: <select id="subject-select"></select></label>
         <button onclick="window.location.href='students.html'" 
           style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">  Student Attendance Overview
-</button>
+        </button>
 
   <button onclick="window.location.href='sem.html'" 
           style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
@@ -220,11 +237,11 @@
           style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
     Check Absent Students
   </button>
-        <!-- <label>Radius (m): <input id="radius-input" type="number" min="5" max="200" step="1" value="35" /></label>
-        <label>Expires in (min): <input id="expire-mins" type="number" min="1" max="15" step="1" value="3" /></label> -->
-        <!-- <button id="set-class-here">Use my current location</button>
+        <label>Radius (m): <input id="radius-input" type="number" min="5" max="200" step="1" value="35" /></label>
+        <label>Expires in (min): <input id="expire-mins" type="number" min="1" max="15" step="1" value="3" /></label>
+        <button id="set-class-here">Use my current location</button>
         <button id="start-qr-btn">Start QR Session</button>
-        <button id="end-qr-btn" class="danger-btn" style="display:none;">End Session</button> -->
+        <button id="end-qr-btn" class="danger-btn" style="display:none;">End Session</button>
       </div>
       <div id="add-class-section" class="row">
   <input type="text" id="new-class-name" placeholder="Enter new class/subject">
@@ -239,18 +256,18 @@
     </div>
       <div id="qr-box" class="hidden">
         <div id="qrcode"></div>
-        <!-- <div>
+        <div>
           <div id="qr-info" class="muted"></div>
           <small>Students: open your camera, scan the QR, tap the link, allow location, done.</small>
-        </div> -->
+        </div>
       </div>
     </div>
     <!-- Add class input (hidden for viewers) -->
     
 
     <!-- STUDENT: Token detected -->
-    <!-- <div id="scan-status" class="notice hidden"></div>
-     <h1>Mark Attendance</h1>
+    <div id="scan-status" class="notice hidden"></div>
+     <!-- <h1>Mark Attendance</h1>
   <input type="text" id="qrInput" placeholder="Paste scanned QR content" />
   <button onclick="markAttendance()">Submit</button> -->
 
@@ -421,7 +438,37 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   let activeSessionToken = null;
   let activeSessionRef = null;
   let qrcode = null;
+// Detect if user is on mobile
+  function isMobile() {
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
 
+  // Show camera button ONLY for viewers on mobile
+  window.addEventListener("load", () => {
+    const viewerMode = true;  // You can set this based on your login role
+
+    if (isMobile() && viewerMode) {
+      document.getElementById("mobile-camera-box").style.display = "block";
+    }
+  });
+
+  // Open camera function
+  async function openMobileCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" }  // back camera
+      });
+
+      const video = document.getElementById("camera-preview");
+      const previewBox = document.getElementById("camera-preview-box");
+
+      video.srcObject = stream;
+      previewBox.style.display = "block";
+
+    } catch (err) {
+      alert("Camera access denied or not supported: " + err);
+    }
+  }
   /*************************************
    * AUTO-UPDATE SYSTEM
    *************************************/
@@ -1186,7 +1233,7 @@ async function saveAttendance() {
 
   const options = {
     enableHighAccuracy: true,
-    timeout: 30000, // 30 seconds timeout
+    timeout: 600000, // 30 seconds timeout
     maximumAge: 30000  // Accept cached position up to 30 seconds old
   };
 

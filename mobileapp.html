@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>College Attendance App</title>
+
+<style>
+    :root {
+        --bg:#f1f5f9;
+        --ink:#1e293b;
+        --ink-2:#334155;
+        --brand:#2563eb;
+        --brand-2:#1d4ed8;
+        --card-bg:#ffffff;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+        font-family:'Segoe UI', sans-serif;
+        background:var(--bg);
+        color:var(--ink);
+        line-height:1.6;
+    }
+
+    .container {
+        max-width:700px;
+        margin:60px auto;
+        text-align:center;
+        padding:30px;
+        background:white;
+        border-radius:18px;
+        box-shadow:0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+        font-size:2rem;
+        color:var(--ink);
+        font-weight:700;
+        margin-bottom:10px;
+    }
+
+    p {
+        margin:10px 0 20px;
+        color:var(--ink-2);
+        font-size:1.1rem;
+    }
+
+    .highlight {
+        background:#dbeafe;
+        color:#1e3a8a;
+        padding:6px 12px;
+        border-radius:8px;
+        display:inline-block;
+        margin-bottom:20px;
+        font-weight:600;
+    }
+
+    .download-btn {
+        display:inline-block;
+        padding:15px 28px;
+        background:var(--brand);
+        color:white;
+        font-size:1.2rem;
+        border-radius:12px;
+        text-decoration:none;
+        font-weight:600;
+        transition:.25s ease;
+    }
+
+    .download-btn:hover {
+        background:var(--brand-2);
+        transform:translateY(-3px);
+    }
+
+    .features {
+        margin-top:25px;
+        text-align:left;
+        font-size:1.05rem;
+    }
+
+    .features li {
+        margin:8px 0;
+    }
+
+    footer {
+        margin-top:40px;
+        text-align:center;
+        color:#64748b;
+        font-size:.9rem;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="highlight">📱 Mobile App for Recording College Attendance</div>
+
+    <h1>Download College Attendance App</h1>
+
+    <p>
+        A simple, fast, and secure mobile application designed for students and faculty 
+        to record and track attendance with ease.
+    </p>
+
+    <a href="attendance.apk" download class="download-btn">⬇ Download Android App</a>
+
+    <ul class="features">
+        <li>✔ Easy attendance recording</li>
+        <li>✔ Fast and user-friendly interface</li>
+        <li>✔ Works offline & syncs when online</li>
+        <li>✔ Designed for CSE, DS, AIML, and AM branches</li>
+    </ul>
+</div>
+
+<footer>© 2025 College Attendance System</footer>
+
+</body>
+</html>

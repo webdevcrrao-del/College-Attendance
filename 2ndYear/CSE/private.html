@@ -251,7 +251,7 @@ const firebaseConfig = {
       toEl.value   = `${year}-12-06`;
     } else if(semester === 2){
       fromEl.value = `${year}-12-08`;
-      toEl.value   = `${year}-06-17`;
+      toEl.value   = `${year+1}-06-17`;
     }
     }
 
@@ -288,31 +288,50 @@ const firebaseConfig = {
         let totalRecordsFound = 0;
 
         snap.forEach(docSnap => {
-          const data = docSnap.data();
-          const dateStr = data.date;
-          
-          // Skip if outside date range
-          if (from && dateStr < from) return;
-          if (to && dateStr > to) return;
+  const data = docSnap.data();
+  const dateStr = data.date;
 
-          const subjects = data.subjects || [];
-          const day = data.day || '';
-          const studentEntry = data.data && data.data[studentKey];
+  // Date filter
+  if (from && dateStr < from) return;
+  if (to && dateStr > to) return;
 
-          if (studentEntry && Array.isArray(studentEntry)) {
-            totalRecordsFound++;
-            subjects.forEach((sub, i) => {
-              if (!summary[sub]) summary[sub] = {present:0,total:0};
-              summary[sub].total++;
-              const present = studentEntry[i] === true;
-              if (present) summary[sub].present++;
-              
-              const statusClass = present ? 'status-present' : 'status-absent';
-              const statusText = present ? 'Present' : 'Absent';
-              detailsRows += `<tr><td>${dateStr}</td><td>${day}</td><td>${sub}</td><td class="${statusClass}">${statusText}</td></tr>`;
-            });
-          }
-        });
+  const subjects = data.subjects || [];
+  const day = data.day || '';
+  const allStudentsData = data.data || {};
+  const studentEntry = allStudentsData[studentKey];
+
+  if (!studentEntry || !Array.isArray(studentEntry)) return;
+
+  subjects.forEach((sub, i) => {
+
+    // 🔍 Check if at least ONE student is present for this subject
+    const classConducted = Object.values(allStudentsData)
+      .some(arr => Array.isArray(arr) && arr[i] === true);
+
+    // ❌ Skip counting if nobody attended
+    if (!classConducted) return;
+
+    // ✅ Initialize summary
+    if (!summary[sub]) summary[sub] = { present: 0, total: 0 };
+
+    summary[sub].total++;
+
+    const present = studentEntry[i] === true;
+    if (present) summary[sub].present++;
+
+    const statusClass = present ? 'status-present' : 'status-absent';
+    const statusText = present ? 'Present' : 'Absent';
+
+    detailsRows += `
+      <tr>
+        <td>${dateStr}</td>
+        <td>${day}</td>
+        <td>${sub}</td>
+        <td class="${statusClass}">${statusText}</td>
+      </tr>`;
+  });
+});
+
 
         // Render summary
         summaryBody.innerHTML = '';

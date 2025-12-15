@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Under Construction</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f3f4f6;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Montserrat', sans-serif;
+      color: #1f2937;
+      text-align: center;
+      user-select: none;
+    }
+
+    .icon {
+      font-size: 6rem;
+      color: #0f4c81;
+      margin-bottom: 1rem;
+      animation: pulse 2s infinite;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 1.5px;
+    }
+
+    p {
+      font-size: 1.1rem;
+      color: #4b5563;
+      max-width: 320px;
+      margin: 0 auto 2rem;
+      line-height: 1.4;
+    }
+
+    .loader {
+      border: 6px solid #e5e7eb;
+      border-top: 6px solid #0f4c81;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      animation: spin 1.5s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.6;
+        transform: scale(1.1);
+      }
+    }
+
+    @keyframes spin {
+      0% {transform: rotate(0deg);}
+      100% {transform: rotate(360deg);}
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 2rem;
+      }
+      .icon {
+        font-size: 4.5rem;
+      }
+      p {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="icon" aria-hidden="true">🚧</div>
+  <h1>Page Under Construction</h1>
+  <p>We're working hard to bring you this page soon. Please check back later.</p>
+  <div class="loader" aria-label="Loading animation"></div>
+</body>
+</html>

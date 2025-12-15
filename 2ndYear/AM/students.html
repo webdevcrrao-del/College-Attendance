@@ -228,7 +228,7 @@
         endDateEl.value   = `${year}-12-06`;
       } else {
         startDateEl.value = `${year}-12-08`;
-        endDateEl.value   = `${year}-06-17`;
+        endDateEl.value   = `${year+1}-06-17`;
       }
       
       if (currentStudentName) {
@@ -308,52 +308,71 @@
 
     // Attendance loader
     async function loadStudentAttendance(studentKey) {
-      const snap = await getDocs(collection(db, "attendance"));
+  const snap = await getDocs(collection(db, "attendance"));
 
-      const subjectStats = {};
-      const startDate = startDateEl.value;
-      const endDate = endDateEl.value;
+  const subjectStats = {};
+  const startDate = startDateEl.value;
+  const endDate = endDateEl.value;
 
-      snap.forEach(doc => {
-        const docId = doc.id; // e.g., "Monday_2025-08-20"
-        const datePart = docId.split("_")[1]; // "2025-08-20"
+  snap.forEach(doc => {
+    const docId = doc.id;              // e.g., Monday_2025-08-20
+    const datePart = docId.split("_")[1];
 
-        if (startDate && datePart < startDate) return;
-        if (endDate && datePart > endDate) return;
+    if (startDate && datePart < startDate) return;
+    if (endDate && datePart > endDate) return;
 
-        const data = doc.data();
-        if (Array.isArray(data.subjects) && data.data && data.data[studentKey]) {
-          const studentEntry = data.data[studentKey];
-          data.subjects.forEach((sub, i) => {
-            if (!subjectStats[sub]) subjectStats[sub] = { present:0, total:0 };
-            subjectStats[sub].total++;
-            if (studentEntry[i] === true) {
-              subjectStats[sub].present++;
-            }
-          });
-        }
-      });
+    const data = doc.data();
+    if (!Array.isArray(data.subjects) || !data.data) return;
 
-      currentStudentName = studentKey;
-      studentName.textContent = studentKey;
-      tbody.innerHTML = "";
-      Object.keys(subjectStats).forEach(sub => {
-        const {present, total} = subjectStats[sub];
-        const avg = total ? ((present/total)*100).toFixed(1) : 0;
-        tbody.innerHTML += `
-          <tr>
-            <td>${sub}</td>
-            <td>${present}</td>
-            <td>${total}</td>
-            <td>${avg}%</td>
-          </tr>
-        `;
-      });
+    const allStudentsData = data.data;
+    const studentEntry = allStudentsData[studentKey];
+    if (!Array.isArray(studentEntry)) return;
 
-      lastReport = subjectStats;
-      downloadBtn.style.display = "inline-block";
-      detailsDiv.style.display = "block";
-    }
+    data.subjects.forEach((sub, i) => {
+
+      // ✅ Check if class actually happened
+      const classConducted = Object.values(allStudentsData)
+        .some(arr => Array.isArray(arr) && arr[i] === true);
+
+      // ❌ Skip if nobody attended
+      if (!classConducted) return;
+
+      if (!subjectStats[sub]) {
+        subjectStats[sub] = { present: 0, total: 0 };
+      }
+
+      subjectStats[sub].total++;
+
+      if (studentEntry[i] === true) {
+        subjectStats[sub].present++;
+      }
+    });
+  });
+
+  // Render UI
+  currentStudentName = studentKey;
+  studentName.textContent = studentKey;
+  tbody.innerHTML = "";
+
+  Object.keys(subjectStats).forEach(sub => {
+    const { present, total } = subjectStats[sub];
+    const avg = total ? ((present / total) * 100).toFixed(1) : 0;
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${sub}</td>
+        <td>${present}</td>
+        <td>${total}</td>
+        <td>${avg}%</td>
+      </tr>
+    `;
+  });
+
+  lastReport = subjectStats;
+  downloadBtn.style.display = "inline-block";
+  detailsDiv.style.display = "block";
+}
+
 
     // Auth check
     onAuthStateChanged(auth, (user) => {

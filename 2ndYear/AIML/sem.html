@@ -289,27 +289,45 @@
     return '';
   }
 
-  function renderRows(docs){
-    if (!docs.length){
-      tbody.innerHTML = '<tr><td colspan="4" class="muted">No records found</td></tr>';
-      return;
-    }
-    tbody.innerHTML = docs.map((d)=>{
-      const dateStr = normalizeDate(d.date);
-      const day = d.day || new Date(dateStr).toLocaleDateString(undefined, { weekday:'long' });
-      const subjects = Array.isArray(d.subjects) ? d.subjects.join(', ') : (d.subjects || '—');
-      const updatedBy = d.updatedBy || 'Unknown';
-      return `<tr data-date="${dateStr}" class="clickable-row">
-        <td>${dateStr || '—'}</td>
-        <td>${day || '—'}</td>
-        <td>${subjects}</td>
-        <td>${updatedBy}</td>
-      </tr>`; 
-    }).join('');
-    
-    // Add click handlers to rows
-    addRowClickHandlers();
+function renderRows(docs) {
+  if (!docs.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="muted">No records found</td></tr>';
+    return;
   }
+
+  tbody.innerHTML = docs.map(d => {
+    const dateStr = normalizeDate(d.date);
+    const day =
+      d.day || new Date(dateStr).toLocaleDateString(undefined, { weekday: 'long' });
+
+    const subjects = Array.isArray(d.subjects) ? d.subjects : [];
+    const attendanceData = d.data || {};
+
+    // ✅ KEEP ONLY subjects where at least one student is present
+    const subjectsWithPresence = subjects.filter((_, index) =>
+      Object.values(attendanceData).some(arr =>
+        Array.isArray(arr) && arr[index] === true
+      )
+    );
+
+    const subjectsText =
+      subjectsWithPresence.length ? subjectsWithPresence.join(', ') : '—';
+
+    return `
+      <tr data-date="${dateStr}" class="clickable-row">
+        <td>${dateStr}</td>
+        <td>${day}</td>
+        <td>${subjectsText}</td>
+        <td>${d.updatedBy || 'Unknown'}</td>
+      </tr>
+    `;
+  }).join('');
+
+  addRowClickHandlers();
+}
+
+
+
 
   function addRowClickHandlers() {
     const clickableRows = tbody.querySelectorAll('.clickable-row');
@@ -322,6 +340,44 @@
       });
     });
   }
+
+  function getSubjectsWithAnyPresent(attendanceData, selectedSubjects) {
+  if (!attendanceData.subjects || !attendanceData.data) return [];
+
+  const subjects = attendanceData.subjects;
+
+  // Subjects to check (selected OR all)
+  const subjectsToCheck = selectedSubjects.length
+    ? subjects.filter(s => selectedSubjects.includes(s))
+    : subjects;
+
+  // Keep only subjects where at least one student is present
+  return subjectsToCheck.filter((subject, index) => {
+    const actualIndex = subjects.indexOf(subject);
+    return Object.values(attendanceData.data).some(arr =>
+      Array.isArray(arr) && arr[actualIndex] === true
+    );
+  });
+}
+function getSubjectIndexesWithAnyPresent(attendanceData, selectedSubjects) {
+  if (!attendanceData.subjects || !attendanceData.data) return [];
+
+  const subjects = attendanceData.subjects;
+
+  const subjectsToCheck = selectedSubjects.length
+    ? subjects.filter(s => selectedSubjects.includes(s))
+    : subjects;
+
+  return subjectsToCheck
+    .map(subject => subjects.indexOf(subject))
+    .filter(index =>
+      Object.values(attendanceData.data).some(arr =>
+        Array.isArray(arr) && arr[index] === true
+      )
+    );
+}
+
+
 
   async function downloadAttendanceCSV(date) {
     setMsg(`Preparing CSV download for ${date}...`, 'info');
@@ -351,16 +407,38 @@
       
       const attendanceData = attendanceSnap.data();
       
-      // Create CSV content
-      let csvContent = 'Roll Number,Student Name';
       
-      // Add subject headers
-      if (attendanceData.subjects && Array.isArray(attendanceData.subjects)) {
-        attendanceData.subjects.forEach(subject => {
-          csvContent += `,${subject}`;
-        });
-      }
-      csvContent += ',Present Count,Absent Count,Attendance Percentage\n';
+   // ✅ Selected subjects from filter
+const selectedSubjects =
+  Array.from(subjectFilter.selectedOptions).map(o => o.value);
+
+// ✅ Get subject indexes where at least one student is present
+const finalIndexes =
+  getSubjectIndexesWithAnyPresent(attendanceData, selectedSubjects);
+  if (finalIndexes.length === 0) {
+  setMsg(
+    'No subjects found where at least one student is present. CSV not generated.',
+    'err'
+  );
+  return;
+}
+
+
+// ✅ Final subject names for CSV
+const finalSubjects = finalIndexes.map(i => attendanceData.subjects[i]);
+
+// ✅ Create CSV header
+let csvContent = 'Roll Number,Student Name';
+
+finalSubjects.forEach(subject => {
+  csvContent += `,${subject}`;
+});
+
+csvContent += ',Present Count,Absent Count,Attendance Percentage\n';
+
+
+
+
       
       // Add student data from the 'data' map
       if (attendanceData.data) {
@@ -379,26 +457,34 @@
           
           // Add attendance status for each subject
           if (attendanceData.subjects && Array.isArray(attendanceData.subjects)) {
-            attendanceData.subjects.forEach((subject, index) => {
-              // attendanceArray should be an array of booleans
-              const attendanceValue = Array.isArray(attendanceArray) && 
-                                    attendanceArray[index] !== undefined ? 
-                                    attendanceArray[index] : null;
-              
-              let status = 'Not Marked';
-              if (attendanceValue === true) {
-                status = 'Present';
-                presentCount++;
-                totalSubjects++;
-              } else if (attendanceValue === false) {
-                status = 'Absent';
-                totalSubjects++;
-              }
-              
-              csvContent += `,"${status}"`;
-            });
+
+
+// Add attendance status ONLY for selected subjects
+finalIndexes.forEach(index => {
+  const attendanceValue =
+    Array.isArray(attendanceArray) && attendanceArray[index] !== undefined
+      ? attendanceArray[index]
+      : null;
+
+  let status = 'Not Marked';
+  if (attendanceValue === true) {
+    status = 'Present';
+    presentCount++;
+    totalSubjects++;
+  } else if (attendanceValue === false) {
+    status = 'Absent';
+    totalSubjects++;
+  }
+
+  csvContent += `,"${status}"`;
+});
+
+
           }
-          
+          if (totalSubjects === 0) {
+  return; // skip this student
+}
+
           // Calculate attendance percentage
           const percentage = totalSubjects > 0 ? ((presentCount / totalSubjects) * 100).toFixed(1) : 0;
           
@@ -481,6 +567,12 @@
       throw err;
     }
   }
+function classHasAnyPresent(attendanceDoc) {
+  if (!attendanceDoc || !attendanceDoc.data) return false;
+
+  return Object.values(attendanceDoc.data)
+    .some(arr => Array.isArray(arr) && arr.some(v => v === true));
+}
 
   async function runFilter(){
     const from = fromEl.value; const to = toEl.value;
@@ -489,12 +581,21 @@
 
     try{
       let rows = await fetchBetweenDates(from, to);
+
+// ✅ KEEP ONLY classes where at least one student is present
+rows = rows.filter(r => classHasAnyPresent(r));
+
       const selectedSubjects = Array.from(subjectFilter.selectedOptions).map(opt=>opt.value);
       if (selectedSubjects.length){
         rows = rows.filter(r => Array.isArray(r.subjects) && selectedSubjects.every(s => r.subjects.includes(s)));
       }
-      renderRows(rows);
-      setMsg(`Loaded ${rows.length} record(s). Click any row to download CSV.`, 'ok');
+      renderRows(rows, selectedSubjects);
+
+      setMsg(
+  `Loaded ${rows.length} conducted class(es) (at least one student present). Click any row to download CSV.`,
+  'ok'
+);
+
       populateSubjectOptions(rows);
     }catch(err){
       if (err && err.code === 'permission-denied'){
@@ -535,7 +636,7 @@
       toEl.value   = `${year}-12-06`;
     } else if(sem === 2){
       fromEl.value = `${year}-12-08`;
-      toEl.value   = `${year}-06-17`;
+      toEl.value   = `${year+1}-06-17`;
     }
   }
   sem1Btn.addEventListener('click', ()=>{ setSemesterDates(1); runFilter(); });
