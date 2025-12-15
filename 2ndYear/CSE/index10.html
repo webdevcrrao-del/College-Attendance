@@ -872,17 +872,30 @@ function removeClass() {
       daySelect.appendChild(option);
     });
   }
+  
 
   function populateSubjectSelect() {
-    subjectSelect.innerHTML = '';
-    const subjects = subjectsByDay[daySelect.value] || [];
-    subjects.forEach((s, i) => {
-      const opt = document.createElement('option');
-      opt.value = String(i); // store index
-      opt.textContent = s;
-      subjectSelect.appendChild(opt);
-    });
+  subjectSelect.innerHTML = '';
+
+  const subjects = subjectsByDay[daySelect.value] || [];
+
+  // 1️⃣ Add options first
+  subjects.forEach((s, i) => {
+    const opt = document.createElement('option');
+    opt.value = String(i);
+    opt.textContent = s;
+    subjectSelect.appendChild(opt);
+  });
+
+  // 2️⃣ Select first subject
+  if (subjectSelect.options.length > 0) {
+    subjectSelect.selectedIndex = 0;
   }
+
+  // 3️⃣ Now build table (subjectSelect.value is valid)
+  buildTable(subjects);
+}
+
 
 function buildTable(subjects, existingData = {}) {
   // Clear existing content
