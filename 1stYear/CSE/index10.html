@@ -130,6 +130,8 @@
     }
     
     
+    
+    
   </style>
 </head>
 <body>
@@ -181,11 +183,16 @@
 
     <div class="row">
 
+
       <label>Saved Records: <select required id="saved-dates"></select></label>
       <button id="logout-btn" class="danger-btn">Logout</button>
       <button onclick="window.location.href='private.html'" 
           style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
     Click to Check your Attendance
+  </button>
+  <button onclick="window.location.href='chatbot.html'">
+  🤖 Attendance Chatbot
+</button>
   </button>
   <button onclick="window.location.href='chatbot.html'">
   🤖 Attendance Chatbot
@@ -228,6 +235,7 @@
         <button onclick="window.location.href='students.html'" 
           style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">  Student Attendance Overview
         </button>
+        </button>
 
   <button onclick="window.location.href='sem.html'" 
           style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
@@ -240,7 +248,11 @@
         <label>Radius (m): <input id="radius-input" type="number" min="5" max="200" step="1" value="35" /></label>
         <label>Expires in (min): <input id="expire-mins" type="number" min="1" max="15" step="1" value="3" /></label>
         <button id="set-class-here">Use my current location</button>
+        <label>Radius (m): <input id="radius-input" type="number" min="5" max="200" step="1" value="35" /></label>
+        <label>Expires in (min): <input id="expire-mins" type="number" min="1" max="15" step="1" value="3" /></label>
+        <button id="set-class-here">Use my current location</button>
         <button id="start-qr-btn">Start QR Session</button>
+        <button id="end-qr-btn" class="danger-btn" style="display:none;">End Session</button>
         <button id="end-qr-btn" class="danger-btn" style="display:none;">End Session</button>
       </div>
       <div id="add-class-section" class="row">
@@ -257,8 +269,10 @@
       <div id="qr-box" class="hidden">
         <div id="qrcode"></div>
         <div>
+        <div>
           <div id="qr-info" class="muted"></div>
           <small>Students: open your camera, scan the QR, tap the link, allow location, done.</small>
+        </div>
         </div>
       </div>
     </div>
@@ -266,6 +280,8 @@
     
 
     <!-- STUDENT: Token detected -->
+    <div id="scan-status" class="notice hidden"></div>
+     <!-- <h1>Mark Attendance</h1>
     <div id="scan-status" class="notice hidden"></div>
      <!-- <h1>Mark Attendance</h1>
   <input type="text" id="qrInput" placeholder="Paste scanned QR content" />
@@ -363,7 +379,7 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
 "BT25CS20 - M. VIKRAM",
 "BT25CS21 - ALLADI SRIVARDHAN",
 "BT25CS22 - KAILA THAKSHITH PRANAV REDDY",
-"BT25CS23 - RITHIK SHETTYGARI",
+"BT25CS23 - RITHIK SHETTYGAR",
 "BT25CS24 - VATTIKONDA JATHIN CHOWDARY",
 "BT25CS25 - SPOORTHI LAVU",
 "BT25CS26 - CHEEDARLA SAKETH",
@@ -438,6 +454,37 @@ const qrData = `http://${pcIP}:${port}/${filePath}`;
   let activeSessionToken = null;
   let activeSessionRef = null;
   let qrcode = null;
+// Detect if user is on mobile
+  function isMobile() {
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+
+  // Show camera button ONLY for viewers on mobile
+  window.addEventListener("load", () => {
+    const viewerMode = true;  // You can set this based on your login role
+
+    if (isMobile() && viewerMode) {
+      document.getElementById("mobile-camera-box").style.display = "block";
+    }
+  });
+
+  // Open camera function
+  async function openMobileCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" }  // back camera
+      });
+
+      const video = document.getElementById("camera-preview");
+      const previewBox = document.getElementById("camera-preview-box");
+
+      video.srcObject = stream;
+      previewBox.style.display = "block";
+
+    } catch (err) {
+      alert("Camera access denied or not supported: " + err);
+    }
+  }
 // Detect if user is on mobile
   function isMobile() {
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -1233,6 +1280,7 @@ async function saveAttendance() {
 
   const options = {
     enableHighAccuracy: true,
+    timeout: 600000, // 30 seconds timeout
     timeout: 600000, // 30 seconds timeout
     maximumAge: 30000  // Accept cached position up to 30 seconds old
   };
