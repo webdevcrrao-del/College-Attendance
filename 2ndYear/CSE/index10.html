@@ -181,6 +181,10 @@
     <div class="row">
       
       <label>Saved Records: <select required id="saved-dates"></select></label>
+        <label id="viewer-subject-block">
+    Subject:
+    <select id="subject-select"></select>
+  </label>
       <button id="logout-btn" class="danger-btn">Logout</button>
       <button onclick="window.location.href='private.html'" 
           style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
@@ -707,6 +711,14 @@ function updateTableWithChanges(newData) {
   }
 
   function showApp() {
+    const viewerSubjectBlock = document.getElementById('viewer-subject-block');
+
+if (currentRole === 'viewer') {
+  viewerSubjectBlock.style.display = 'inline-block'; // show for viewer
+} else {
+  viewerSubjectBlock.style.display = 'none'; // hide for teacher
+}
+
     loginSection.classList.add('hidden');
     attendanceSection.classList.remove('hidden');
 
