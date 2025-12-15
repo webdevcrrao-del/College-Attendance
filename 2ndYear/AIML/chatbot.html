@@ -450,7 +450,7 @@
   measurementId: "G-E9YWR9GL2M"
 };
 
-  const app = initializeApp(firebaseConfig);
+   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
  import { 
   getAuth, 
@@ -659,60 +659,118 @@ addMessage(
     }
   }
 
-  function computeStats() {
-    studentStats = {};
-    dateStats = {};
+ function computeStats() {
+  studentStats = {};
+  dateStats = {};
 
-    for (const doc of attendanceDocs) {
-      const date   = doc.date || (doc.id.split("_")[1] || doc.id);
-      const day    = doc.day  || "";
-      const subs   = Array.isArray(doc.subjects) ? doc.subjects : [];
-      const data   = doc.data || {};
+  for (const doc of attendanceDocs) {
+    const date = doc.date || (doc.id.split("_")[1] || doc.id);
+    const day = doc.day || "";
+    const subs = Array.isArray(doc.subjects) ? doc.subjects : [];
+    const data = doc.data || {};
 
-      if (!dateStats[date]) {
-        dateStats[date] = {
-          day,
-          subjects: subs,
-          totalPresent: 0,
-          totalAbsent: 0,
-          absenteesBySubject: {}
-        };
-        subs.forEach(s => { dateStats[date].absenteesBySubject[s] = []; });
-      }
-
-      for (const [studentKey, flagsRaw] of Object.entries(data)) {
-        if (!studentStats[studentKey]) {
-          studentStats[studentKey] = {
-            perSubject: {},
-            totalPresent: 0,
-            totalClasses: 0
-          };
-        }
-        const flags = Array.isArray(flagsRaw) ? flagsRaw : [flagsRaw];
-
-        subs.forEach((sub, idx) => {
-          const present = !!flags[idx];
-          if (!studentStats[studentKey].perSubject[sub]) {
-            studentStats[studentKey].perSubject[sub] = { present: 0, total: 0 };
-          }
-          const subjStat = studentStats[studentKey].perSubject[sub];
-          subjStat.total++;
-          studentStats[studentKey].totalClasses++;
-
-          if (present) {
-            subjStat.present++;
-            studentStats[studentKey].totalPresent++;
-            dateStats[date].totalPresent++;
-          } else {
-            dateStats[date].totalAbsent++;
-            dateStats[date].absenteesBySubject[sub].push(studentKey);
-          }
-        });
-      }
+    // Init dateStats
+    if (!dateStats[date]) {
+      dateStats[date] = {
+        day,
+        subjects: subs,
+        totalPresent: 0,
+        totalAbsent: 0,
+        absenteesBySubject: {}
+      };
+      subs.forEach(s => (dateStats[date].absenteesBySubject[s] = []));
     }
 
-    log("Computed stats", { studentStats, dateStats });
+    // -------------------------------
+    // PASS 1: detect which subjects actually happened
+    // -------------------------------
+    const subjectHasPresence = {};
+    subs.forEach(s => (subjectHasPresence[s] = false));
+
+    for (const flagsRaw of Object.values(data)) {
+      const flags = Array.isArray(flagsRaw) ? flagsRaw : [flagsRaw];
+      flags.forEach((present, idx) => {
+        if (present) subjectHasPresence[subs[idx]] = true;
+      });
+    }
+
+    // -------------------------------
+    // PASS 2: count attendance ONLY for valid subjects
+    // -------------------------------
+    for (const [studentKey, flagsRaw] of Object.entries(data)) {
+      if (!studentStats[studentKey]) {
+        studentStats[studentKey] = {
+          perSubject: {},
+          totalPresent: 0,
+          totalClasses: 0
+        };
+      }
+
+      const flags = Array.isArray(flagsRaw) ? flagsRaw : [flagsRaw];
+
+      subs.forEach((sub, idx) => {
+        // 🚨 Skip cancelled / empty subjects
+        if (!subjectHasPresence[sub]) return;
+
+        if (!studentStats[studentKey].perSubject[sub]) {
+          studentStats[studentKey].perSubject[sub] = { present: 0, total: 0 };
+        }
+
+        const present = !!flags[idx];
+        const subjStat = studentStats[studentKey].perSubject[sub];
+
+        subjStat.total++;
+        studentStats[studentKey].totalClasses++;
+
+        if (present) {
+          subjStat.present++;
+          studentStats[studentKey].totalPresent++;
+          dateStats[date].totalPresent++;
+        } else {
+          dateStats[date].totalAbsent++;
+          dateStats[date].absenteesBySubject[sub].push(studentKey);
+        }
+      });
+    }
   }
+
+  log("Computed stats (subject-aware)", { studentStats, dateStats });
+}
+function isLowAttendanceQuery(text) {
+  const q = text.toLowerCase();
+  return (
+    q.includes("low attendance") ||
+    q.includes("attendance shortage") ||
+    q.includes("shortage") ||
+    q.includes("below") ||
+    q.includes("weak attendance")
+  );
+}
+
+function findStudentByNaturalName(query) {
+  const q = query.toLowerCase();
+
+  return Object.keys(studentStats).find(key => {
+    const [roll, fullName] = key.split("-");
+    if (!fullName) return false;
+
+    const nameParts = fullName
+      .toLowerCase()
+      .split(/\s+/)        // ["abhinav", "pabbaraaju"]
+      .filter(Boolean);
+
+    // 1️⃣ Roll number match
+    if (q.includes(roll.toLowerCase())) return true;
+
+    // 2️⃣ Full name match
+    if (q.includes(fullName.toLowerCase())) return true;
+
+    // 3️⃣ ANY single name part match (IMPORTANT)
+    return nameParts.some(part => q.includes(part));
+  });
+}
+
+
 
  function buildContextFiltered(userMessage) {
   const lower = userMessage.toLowerCase();
@@ -748,13 +806,16 @@ const studentKey = Object.keys(studentStats).find(k => {
 
   // If user mentions "summary" or "low attendance"
   if (lower.includes("summary") || lower.includes("overall")) {
-  ctx.summary = Object.entries(studentStats).map(([studentKey, s]) => {
+  ctx.summary = Object.entries(studentStats)
+  .slice(0, 30)   // LIMIT
+  .map(([studentKey, s]) => {
     const percent = (s.totalPresent / s.totalClasses) * 100;
     return {
       studentKey,
       overallPercent: Number(percent.toFixed(1))
     };
   });
+
   return ctx;
 }
 
@@ -770,19 +831,13 @@ const studentKey = Object.keys(studentStats).find(k => {
 
 
  
-  async function callGroq(userMessage) {
-
-  // Build attendance context same as before
+ async function callGroq(userMessage) {
   const context = buildContextFiltered(userMessage);
 
-  // Send the request to your Cloudflare Worker (NOT to Groq)
   const res = await fetch(WORKER_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userMessage,
-      context
-    })
+    body: JSON.stringify({ userMessage, context })
   });
 
   if (!res.ok) {
@@ -795,57 +850,169 @@ const studentKey = Object.keys(studentStats).find(k => {
 
   let reply = "";
 
-  // Extract the assistant message (same logic as before)
-  const content = data?.choices?.[0]?.message?.content;
+  if (data?.choices?.length > 0) {
+    const choice = data.choices[0];
 
-  if (typeof content === "string") {
-    reply = content;
-  } else if (Array.isArray(content)) {
-    reply = content.map(c => c?.text || "").join("").trim();
-  } else if (data?.choices?.[0]?.delta?.content) {
-    reply = data.choices[0].delta.content;
+    if (choice.message?.content) {
+      if (typeof choice.message.content === "string") {
+        reply = choice.message.content;
+      } else if (Array.isArray(choice.message.content)) {
+        reply = choice.message.content
+          .map(c => c.text || "")
+          .join("");
+      }
+    } else if (choice.delta?.content) {
+      reply = choice.delta.content;
+    }
   }
 
   if (!reply || reply.trim().length === 0) {
-    reply = "⚠ No response received.";
+    reply =
+      "⚠ I couldn’t generate a response. Try asking a more specific attendance question.";
   }
 
-  reply = reply
+  return reply
     .replace(/```[\s\S]*?```/g, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
 
-  return reply;
+
+function isOverallSummaryQuery(text) {
+  const q = text.toLowerCase();
+  return (
+    q.includes("overall") &&
+    q.includes("attendance")
+  );
+}
+function isStudentDetailsQuery(text) {
+  const q = text.toLowerCase();
+  return (
+    q.includes("attendance details") ||
+    q.includes("attendance of") ||
+    q.includes("show attendance") ||
+    q.includes("student attendance") ||
+    q.includes("details of")
+  );
 }
 
 
   /********************  SEND HANDLER  ********************/
   async function handleSend() {
-    const text = userInput.value.trim();
-    if (!text) return;
-    if (!dataReady) {
-      addMessage("Attendance data is still loading. Please wait a moment and try again.", "bot");
-      return;
-    }
+  const text = userInput.value.trim();
+  if (!text) return;
 
-    addMessage(text, "user");
-    userInput.value = "";
-    showTyping();
-    sendBtn.disabled = true;
+  addMessage(text, "user");
+  userInput.value = "";
+  // ✅ Student-wise attendance details (natural language)
+if (isStudentDetailsQuery(text)) {
+  const studentKey = findStudentByNaturalName(text);
 
-    try {
-      const answer = await callGroq(text);
-      hideTyping();
-      addMessage(answer, "bot");
-    } catch (err) {
-      console.error(err);
-      hideTyping();
-      addMessage("Error while contacting Groq: " + (err.message || String(err)), "bot");
-    } finally {
-      sendBtn.disabled = false;
-      userInput.focus();
+  if (!studentKey) {
+    addMessage(
+      "❌ I couldn't identify the student. Please mention the name clearly.",
+      "bot"
+    );
+    return;
+  }
+
+  const stats = studentStats[studentKey];
+
+  let msg = `📘 **Attendance Details for ${studentKey}**\n\n`;
+
+  for (const [subject, s] of Object.entries(stats.perSubject)) {
+    const percent = ((s.present / s.total) * 100).toFixed(1);
+    msg += `• ${subject}: ${s.present}/${s.total} (${percent}%)\n`;
+  }
+
+  const overall =
+    ((stats.totalPresent / stats.totalClasses) * 100).toFixed(1);
+
+  msg += `\n📊 **Overall Attendance:** ${overall}%`;
+
+  addMessage(msg, "bot");
+  return;
+}
+
+  // ✅ Natural language low attendance handling
+if (isLowAttendanceQuery(text)) {
+  const studentKey = findStudentByNaturalName(text);
+
+  if (!studentKey) {
+    addMessage(
+      "❌ I couldn't identify the student. Please mention the name clearly.",
+      "bot"
+    );
+    return;
+  }
+
+  const stats = studentStats[studentKey];
+  const lowSubjects = [];
+
+  for (const [subject, s] of Object.entries(stats.perSubject)) {
+    const percent = (s.present / s.total) * 100;
+    if (percent < LOW_ATTENDANCE_THRESHOLD) {
+      lowSubjects.push({ subject, percent });
     }
   }
+
+  if (lowSubjects.length === 0) {
+    addMessage(
+      `✅ ${studentKey} has no subjects below ${LOW_ATTENDANCE_THRESHOLD}% attendance.`,
+      "bot"
+    );
+    return;
+  }
+
+  let msg = `⚠ **Low Attendance Subjects for ${studentKey}**\n\n`;
+  lowSubjects.forEach(s => {
+    msg += `• ${s.subject}: ${s.percent.toFixed(1)}%\n`;
+  });
+
+  msg += `\n📌 Threshold: ${LOW_ATTENDANCE_THRESHOLD}%`;
+
+  addMessage(msg, "bot");
+  return;
+}
+
+
+  // ✅ Deterministic summary (NO AI)
+  if (isOverallSummaryQuery(text)) {
+    const totalStudents = Object.keys(studentStats).length;
+    const totalClasses = Object.values(studentStats)[0]?.totalClasses || 0;
+
+    const avgAttendance =
+      Object.values(studentStats)
+        .reduce((sum, s) => sum + (s.totalPresent / s.totalClasses) * 100, 0) /
+      totalStudents;
+
+    addMessage(
+      `📊 **Overall Attendance Summary**\n\n` +
+      `• Total students: ${totalStudents}\n` +
+      `• Total class days: ${totalClasses}\n` +
+      `• Average attendance: ${avgAttendance.toFixed(1)}%\n\n` +
+      `ℹ Based on recorded attendance data.`,
+      "bot"
+    );
+    return;
+  }
+
+  // 🔵 Only use AI for complex queries
+  showTyping();
+  sendBtn.disabled = true;
+
+  try {
+    const answer = await callGroq(text);
+    hideTyping();
+    addMessage(answer, "bot");
+  } catch (err) {
+    hideTyping();
+    addMessage("Error: " + err.message, "bot");
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
 
   /********************  EVENT LISTENERS  ********************/
   sendBtn.addEventListener("click", handleSend);
