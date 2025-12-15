@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>College Attendance Navigation</title>
+
   <style>
     :root {
       --ink:#1e293b;
@@ -11,31 +12,27 @@
       --bg:#f1f5f9;
       --brand:#2563eb;
       --brand-2:#1d4ed8;
-      --ink:#1e293b;
-      --ink-2:#334155;
-      --bg:#f1f5f9;
-      --brand:#2563eb;
-      --brand-2:#1d4ed8;
       --card-bg:#ffffff;
-      --radius:18px;
       --radius:18px;
     }
 
-    * { box-sizing:border-box; margin:0; padding:0; }
+    * {
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
     body {
       font-family:'Segoe UI', system-ui, sans-serif;
       background:var(--bg);
       color:var(--ink);
       line-height:1.6;
-      line-height:1.6;
     }
 
-    /* HEADER */
     /* HEADER */
     header {
       background:var(--ink);
       color:white;
-      padding:26px 24px;
       padding:26px 24px;
       display:flex;
       justify-content:center;
@@ -44,19 +41,14 @@
       position:sticky;
       top:0;
       z-index:10;
-      box-shadow:0 4px 18px rgba(0,0,0,.20);
-      position:sticky;
-      top:0;
-      z-index:10;
     }
+
     header h1 {
-      font-size:1.9rem;
       font-size:1.9rem;
       font-weight:700;
       letter-spacing:.5px;
     }
 
-    /* MAIN GRID */
     /* MAIN GRID */
     main {
       display:grid;
@@ -65,47 +57,31 @@
       max-width:1250px;
       margin:50px auto;
       padding:0 24px;
-      grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-      gap:32px;
-      max-width:1250px;
-      margin:50px auto;
-      padding:0 24px;
     }
 
-    /* CARD */
     /* CARD */
     .container {
       background:var(--card-bg);
       padding:38px 28px;
       border-radius:var(--radius);
       box-shadow:0 8px 26px rgba(0,0,0,.08);
-      padding:38px 28px;
-      border-radius:var(--radius);
-      box-shadow:0 8px 26px rgba(0,0,0,.08);
       text-align:center;
       transition:all .3s ease;
       border:1px solid #e2e8f0;
-      transition:all .3s ease;
-      border:1px solid #e2e8f0;
     }
+
     .container:hover {
-      transform:translateY(-6px);
-      box-shadow:0 12px 30px rgba(0,0,0,.12);
       transform:translateY(-6px);
       box-shadow:0 12px 30px rgba(0,0,0,.12);
     }
 
     h2 {
       margin-bottom:22px;
-      margin-bottom:22px;
       color:var(--ink-2);
-      font-size:1.35rem;
-      font-weight:700;
       font-size:1.35rem;
       font-weight:700;
     }
 
-    /* BUTTON */
     /* BUTTON */
     .btn {
       display:block;
@@ -113,12 +89,8 @@
       margin:12px 0;
       padding:15px;
       font-size:1.05rem;
-      margin:12px 0;
-      padding:15px;
-      font-size:1.05rem;
       font-weight:600;
       border:none;
-      border-radius:12px;
       border-radius:12px;
       cursor:pointer;
       color:white;
@@ -126,50 +98,7 @@
       transition:all .25s ease;
     }
 
-
     .btn:hover {
-      background:var(--brand-2);
-      transform:translateY(-3px);
-    }
-
-    /* Download App Button */
-    .download {
-      display:inline-block;
-      margin:40px auto 0;
-      padding:14px 24px;
-      background:var(--brand);
-      color:white;
-      border-radius:10px;
-      font-size:1.05rem;
-      font-weight:600;
-      text-decoration:none;
-      transition:.25s ease;
-    }
-
-    .download:hover {
-      background:var(--brand-2);
-      transform:translateY(-3px);
-    }
-
-    /* FOOTER */
-      transform:translateY(-3px);
-    }
-
-    /* Download App Button */
-    .download {
-      display:inline-block;
-      margin:40px auto 0;
-      padding:14px 24px;
-      background:var(--brand);
-      color:white;
-      border-radius:10px;
-      font-size:1.05rem;
-      font-weight:600;
-      text-decoration:none;
-      transition:.25s ease;
-    }
-
-    .download:hover {
       background:var(--brand-2);
       transform:translateY(-3px);
     }
@@ -200,33 +129,12 @@
       header h1 { font-size:1.3rem; }
       .btn { font-size:0.95rem; padding:13px; }
       h2 { font-size:1.2rem; }
-      padding:25px;
-      font-size:0.95rem;
-      color:#64748b;
-      margin-top:40px;
-    }
-
-    /* MEDIA QUERIES */
-    @media (max-width:900px) {
-      header h1 { font-size:1.7rem; }
-      .container { padding:32px 24px; }
-    }
-
-    @media (max-width:600px) {
-      header h1 { font-size:1.5rem; }
-      main { gap:24px; }
-      .container { padding:28px 20px; }
-    }
-
-    @media (max-width:420px) {
-      header { padding:20px; }
-      header h1 { font-size:1.3rem; }
-      .btn { font-size:0.95rem; padding:13px; }
-      h2 { font-size:1.2rem; }
     }
   </style>
 </head>
+
 <body>
+
   <header>
     <h1>College Attendance</h1>
   </header>
@@ -234,31 +142,28 @@
   <main>
     <div class="container">
       <h2>1st Year</h2>
-      <button class="btn" onclick="window.location.href='under.html'">CSE</button>
-      <button class="btn" onclick="window.location.href='under.html'">CSE DS</button>
-      <button class="btn" onclick="window.location.href='under.html'">CSE AIML</button>
-      <button class="btn" onclick="window.location.href='under.html'">CSE AM</button>
+      <button class="btn" onclick="location.href='under.html'">CSE</button>
+      <button class="btn" onclick="location.href='under.html'">CSE DS</button>
+      <button class="btn" onclick="location.href='under.html'">CSE AIML</button>
+      <button class="btn" onclick="location.href='under.html'">CSE AM</button>
     </div>
 
     <div class="container">
       <h2>2nd Year</h2>
-      <button class="btn" onclick="window.location.href='2ndYear/CSE/index10.html'">CSE</button>
-      <button class="btn" onclick="window.location.href='2ndYear/DS/index10.html'">CSE DS</button>
-      <button class="btn" onclick="window.location.href='2ndYear/AIML/index10.html'">CSE AIML</button>
-      <button class="btn" onclick="window.location.href='2ndYear/AM/index10.html'">CSE AM</button>
+      <button class="btn" onclick="location.href='2ndYear/CSE/index10.html'">CSE</button>
+      <button class="btn" onclick="location.href='2ndYear/DS/index10.html'">CSE DS</button>
+      <button class="btn" onclick="location.href='2ndYear/AIML/index10.html'">CSE AIML</button>
+      <button class="btn" onclick="location.href='2ndYear/AM/index10.html'">CSE AM</button>
     </div>
 
     <div class="container">
       <h2>3rd Year</h2>
-      <button class="btn" onclick="window.location.href='under.html'">CSE</button>
-      <button class="btn" onclick="window.location.href='under.html'">CSE DS</button>
+      <button class="btn" onclick="location.href='under.html'">CSE</button>
+      <button class="btn" onclick="location.href='under.html'">CSE DS</button>
     </div>
   </main>
 
-  
-
   <footer>
-    © 2025 College Attendance System
     © 2025 College Attendance System
   </footer>
 
