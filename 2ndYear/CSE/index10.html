@@ -438,6 +438,12 @@
 #viewer-subject-block {
   display: none; /* hidden by default */
 }
+select:disabled {
+  background-color: #f1f5f9;
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
 
   </style>
 </head>
@@ -546,9 +552,14 @@
         <button id="end-qr-btn" class="danger-btn" style="display:none;">End Session</button> -->
       </div>
       <div id="add-class-section" class="row">
-  <input type="text" id="new-class-name" placeholder="Enter new class/subject">
-  <button id="add-class-btn">Add Class</button>
-  <button id="remove-class-btn" class="danger-btn">Remove Selected Subject</button>
+  <label>
+  Add Subject:
+  <select id="add-subject-select"></select>
+</label>
+
+<button id="add-subject-btn">Add Selected Subject</button>
+<button id="remove-class-btn" class="danger-btn">Remove Selected Subject</button>
+
 
       <div id="teacher-buttons" class="row">
       <button id="save-btn">Save Attendance</button>
@@ -679,6 +690,20 @@ const firebaseConfig = {
   'Saturday':[
   ]
 };
+const ALL_SUBJECTS = [
+  'OS',
+  'DM',
+  'SE',
+  'DBMS',
+  'CI',
+  'OS Lab',
+  'ES',
+  'NODEJS',
+  'ASSIGNMENT',
+  'BEFA',
+  'DBMS Lab',
+  'RTP'
+];
 
   /*************************************
    * DOM
@@ -860,6 +885,17 @@ try {
       currentDocListener = null;
     }
   }
+function populateAllSubjectsDropdown() {
+  const select = document.getElementById('add-subject-select');
+  select.innerHTML = '';
+
+  ALL_SUBJECTS.forEach(sub => {
+    const opt = document.createElement('option');
+    opt.value = sub;
+    opt.textContent = sub;
+    select.appendChild(opt);
+  });
+}
 
 function updateTableWithChanges(newData) {
   const activeSelect = getActiveSubjectSelect();
@@ -899,10 +935,10 @@ const subjectIndex = parseInt(activeSelect.value, 10);
     startAutoUpdate();
   });
   
-  dateSelect.addEventListener('change', () => { 
-    populateSubjectSelect(); 
-    startAutoUpdate();
-  });
+ dateSelect.addEventListener('change', () => {
+  autoSelectDayFromDate(dateSelect.value);
+});
+
 
   // Start auto-update when saved record is selected
   savedDates.addEventListener('change', () => {
@@ -988,6 +1024,8 @@ const subjectIndex = parseInt(activeSelect.value, 10);
   }
 
   function showApp() {
+    
+
     const viewerSubjectBlock = document.getElementById('viewer-subject-block');
 
 if (currentRole === 'viewer') {
@@ -1000,10 +1038,13 @@ if (currentRole === 'viewer') {
     attendanceSection.classList.remove('hidden');
 
     populateDayDropdown();
-    dateSelect.value = new Date().toISOString().split('T')[0];
-    buildTable(subjectsByDay['Monday']);
+    const today = new Date().toISOString().split('T')[0];
+dateSelect.value = today;
+autoSelectDayFromDate(today);
+  daySelect.disabled = true;
     loadSavedDates();
     populateSubjectSelect();
+      populateAllSubjectsDropdown();
 
     if (currentRole === 'viewer') {
       addClassSection.style.display = 'none';
@@ -1016,7 +1057,7 @@ if (currentRole === 'viewer') {
     } else {
       addClassSection.style.display = '';
       teacherButtons.style.display = '';
-      daySelect.disabled = false;
+     
       dateSelect.disabled = false;
       qrSessionBox.style.display = '';
       toggleAutoUpdateBtn.style.display = '';
@@ -1106,9 +1147,35 @@ if (currentRole === 'viewer') {
   /*************************************
    * Attendance table with Select All functionality
    *************************************/
-  addClassBtn.addEventListener('click', addClass);
+  document
+  .getElementById('add-subject-btn')
+  .addEventListener('click', addSelectedSubject);
+
   const removeClassBtn = document.getElementById('remove-class-btn');
 removeClassBtn.addEventListener('click', removeClass);
+function autoSelectDayFromDate(dateStr) {
+  if (!dateStr) return;
+
+  const days = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday'
+  ];
+
+  const dateObj = new Date(dateStr + "T00:00:00"); // avoid timezone issues
+  const dayName = days[dateObj.getDay()];
+
+  // Only set if day exists in timetable
+  if (subjectsByDay[dayName]) {
+    daySelect.value = dayName;
+    populateSubjectSelect();
+    startAutoUpdate();
+  }
+}
 
 function removeClass() {
   if (currentRole === 'viewer') return;
@@ -1489,32 +1556,64 @@ async function saveAttendance() {
     alert('Failed to load saved records (check Firestore rules).');
   }
 }
+function addSelectedSubject() {
+  if (currentRole === 'viewer') return;
 
+  const day = daySelect.value;
+  const subject = document.getElementById('add-subject-select').value;
 
-  function addClass() {
-    if (currentRole === 'viewer') return;
-    const input = document.getElementById('new-class-name');
-    const newClass = (input.value || '').trim();
-    if (!newClass) { alert('Please enter a class name'); return; }
-
-    const day = daySelect.value;
-    const subjects = subjectsByDay[day];
-    if (subjects.includes(newClass)) { alert('This class already exists for today.'); return; }
-
-    const existingData = {};
-    document.querySelectorAll('#attendance-body tr').forEach(row => {
-      const student = row.cells[0].textContent;
-      existingData[student] = [];
-      for (let i = 1; i < row.cells.length; i++) {
-        existingData[student].push(row.cells[i].firstChild.checked);
-      }
-    });
-
-    subjects.push(newClass);
-    buildTable(subjects, existingData);
-    input.value = '';
-    populateSubjectSelect();
+  if (!subject) {
+    alert('Please select a subject');
+    return;
   }
+
+  const subjects = subjectsByDay[day];
+
+  if (subjects.includes(subject)) {
+    alert(`"${subject}" already exists for ${day}`);
+    return;
+  }
+
+  // Preserve existing attendance
+  const existingData = {};
+  document.querySelectorAll('#attendance-body tr').forEach(row => {
+    const student = row.cells[0].textContent;
+    existingData[student] = [];
+    for (let i = 1; i < row.cells.length; i++) {
+      existingData[student].push(row.cells[i].firstChild.checked);
+    }
+  });
+
+  subjects.push(subject);
+  buildTable(subjects, existingData);
+  populateSubjectSelect();
+}
+
+
+  // function addClass() {
+  //   if (currentRole === 'viewer') return;
+  //   const input = document.getElementById('new-class-name');
+  //   const newClass = (input.value || '').trim();
+  //   if (!newClass) { alert('Please enter a class name'); return; }
+
+  //   const day = daySelect.value;
+  //   const subjects = subjectsByDay[day];
+  //   if (subjects.includes(newClass)) { alert('This class already exists for today.'); return; }
+
+  //   const existingData = {};
+  //   document.querySelectorAll('#attendance-body tr').forEach(row => {
+  //     const student = row.cells[0].textContent;
+  //     existingData[student] = [];
+  //     for (let i = 1; i < row.cells.length; i++) {
+  //       existingData[student].push(row.cells[i].firstChild.checked);
+  //     }
+  //   });
+
+  //   subjects.push(newClass);
+  //   buildTable(subjects, existingData);
+  //   input.value = '';
+  //   populateSubjectSelect();
+  // }
 
 async function exportCSV() {
   if (currentRole !== 'teacher') {
