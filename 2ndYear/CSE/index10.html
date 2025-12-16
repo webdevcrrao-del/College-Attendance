@@ -653,78 +653,30 @@ const firebaseConfig = {
     'DM',
     'SE',
     'DBMS',
-    'CI',
-    'ES',
-    'BEFA',
-    'NODEJS',
-    'OS Lab',
-    'DBMS Lab',
-    'RTP','ASSIGNMENT'
+    'CI'
   ],
   'Tuesday': [
     'OS',
     'DM',
     'SE',
-    'DBMS',
-    'CI',
-    'ES',
-    'BEFA',
-    'NODEJS',
-    'OS Lab',
-    'DBMS Lab',
-    'RTP','ASSIGNMENT'
+    'OS Lab'
   ],
   'Wednesday': [
-    'OS',
-    'DM',
-    'SE',
-    'DBMS',
-    'CI',
     'ES',
-    'BEFA',
-    'NODEJS',
-    'OS Lab',
-    'DBMS Lab',
-    'RTP','ASSIGNMENT'
+    'NODEJS','ASSIGNMENT'
   ],
   'Thursday': [
-    'OS',
-    'DM',
-    'SE',
-    'DBMS',
-    'CI',
-    'ES',
     'BEFA',
-    'NODEJS',
-    'OS Lab',
-    'DBMS Lab',
-    'RTP','ASSIGNMENT'
+    'DBMS Lab'
   ],
   'Friday': [
     'OS',
     'DM',
     'SE',
     'DBMS',
-    'CI',
-    'ES',
-    'BEFA',
-    'NODEJS',
-    'OS Lab',
-    'DBMS Lab',
-    'RTP','ASSIGNMENT'
+    'RTP'
   ],
   'Saturday':[
-    'OS',
-    'DM',
-    'SE',
-    'DBMS',
-    'CI',
-    'ES',
-    'BEFA',
-    'NODEJS',
-    'OS Lab',
-    'DBMS Lab',
-    'RTP','ASSIGNMENT'
   ]
 };
 
@@ -853,7 +805,8 @@ try {
               processedData[student] = attendance;
             } else {
               // Convert non-array data to array format
-              processedData[student] = new Array((newData.subjects || []).length).fill(false);
+              processedData[student] = new Array((newData.subjects || []).length).fill(true);
+
             }
           }
           updateTableWithChanges({...newData, data: processedData});
@@ -1270,13 +1223,14 @@ tableHeader.innerHTML = headerHTML;
     const row = document.createElement('tr');
     
     // Get attendance status for this specific subject
-    let isPresent = false;
-    if (existingData[student] && Array.isArray(existingData[student])) {
-      // Ensure the array has enough elements
-      if (subjectIndex < existingData[student].length) {
-        isPresent = existingData[student][subjectIndex];
-      }
-    }
+    let isPresent = true; // ✅ default PRESENT
+
+if (existingData[student] && Array.isArray(existingData[student])) {
+  if (subjectIndex < existingData[student].length) {
+    isPresent = existingData[student][subjectIndex];
+  }
+}
+
     
     const disabled = currentRole === 'viewer' ? 'disabled' : '';
     row.innerHTML = `
@@ -1416,6 +1370,7 @@ function processAttendanceData(data, subjects) {
   return processedData;
 }
 
+
 // 1. Modify the saveAttendance function to handle multiple subjects properly
 // 1. Modify the saveAttendance function to match the desired structure
 async function saveAttendance() {
@@ -1466,7 +1421,8 @@ async function saveAttendance() {
     
     // Initialize student data if it doesn't exist
     if (!existingData[student]) {
-      existingData[student] = new Array(allSubjects.length).fill(false);
+      existingData[student] = new Array(allSubjects.length).fill(true);
+
     }
     
     // Ensure the array has the correct length
@@ -1937,7 +1893,7 @@ async function exportCSV() {
 
     // Ensure subjects array is from timetable
     const subjects = subjectsByDay[day] || [];
-    const blankRow = subjects.map(() => false);
+    const blankRow = subjects.map(() => true);
 
     let data = {};
     if (attSnap.exists()) {
