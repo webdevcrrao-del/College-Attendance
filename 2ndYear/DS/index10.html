@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Attendance System For CSE(DS)</title>
+  <title>Attendance System For CSE(Core)</title>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
@@ -416,11 +416,40 @@
         min-width: 100%;
       }
     }
+    .row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#subject-select {
+  min-width: 180px;
+  min-height: 40px;
+  padding: 8px 10px;
+  line-height: 1.2;
+}
+#viewer-subject-block {
+  display: none; /* hidden by default */
+}
+select:disabled {
+  background-color: #f1f5f9;
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+
   </style>
 </head>
 <body>
 <header style="display:flex; justify-content:space-between; align-items:center; padding:20px; background:#2c3e50; color:white;">
-  <h1 style="margin:0;">Attendance System For CSE(DS)</h1>
+  <h1 style="margin:0;">Attendance System For CSE(CORE)</h1>
   
 </header>
 
@@ -489,7 +518,7 @@
        <h2 style="margin: 0;">Instructions to Mark Attendance:</h2>
     </div>
     
-    <p >Step1: Select a Saved Record. If the required record is not found, Select Day, Date and Subject. <br>
+    <p >Step1:  Select Day and Subject. <br>
       Step2: Start taking attendance by ticking the boxes. If the Required Subject is not found then add the subject.<br> 
       Step3(Important): Click "Save Attendance" to save the record.<br>     
     </p>
@@ -497,42 +526,65 @@
       <!-- <div class="row">
         <strong>QR + Geolocation session (teacher)</strong>
       </div> -->
+      <div class="row" style="justify-content: space-between; align-items: center; ">
+      <!-- <h2 style="margin: 0;">Mark Attendance</h2> -->
+       <h2 style="margin: 0;">Session Controls:</h2>
+    </div>
       <div class="row">
+        
+    
+    
+        <label>Date: <input type="date" id="date-select"></label>
         <label>Select Day: <select id="day-select"></select></label>
-      <label>Date: <input type="date" id="date-select"></label>
+      
         <label>Subject: <select id="subject-select"></select></label>
-        <button onclick="window.location.href='students.html'" 
-          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">  Student Attendance Overview
-</button>
-
- <button onclick="window.location.href='sem.html'" 
-          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
-    Classes taken in the Semester
-  </button>
-  <button onclick="window.location.href='absent.html'" 
-          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
-    Check Absent Students
-  </button>
-  <button onclick="window.location.href='chatbot.html'">
-  🤖 Attendance Chatbot
-</button>
+        
         <!-- <label>Radius (m): <input id="radius-input" type="number" min="5" max="200" step="1" value="35" /></label>
         <label>Expires in (min): <input id="expire-mins" type="number" min="1" max="15" step="1" value="3" /></label> -->
         <!-- <button id="set-class-here">Use my current location</button>
         <button id="start-qr-btn">Start QR Session</button>
         <button id="end-qr-btn" class="danger-btn" style="display:none;">End Session</button> -->
       </div>
+      <div class="row" style="justify-content: space-between; align-items: center; ">
+      <!-- <h2 style="margin: 0;">Mark Attendance</h2> -->
+       <h2 style="margin: 0;">Teacher Actions:</h2>
+    </div>
       <div id="add-class-section" class="row">
-  <input type="text" id="new-class-name" placeholder="Enter new class/subject">
-  <button id="add-class-btn">Add Class</button>
-  <button id="remove-class-btn" class="danger-btn">Remove Selected Subject</button>
+  <label>
+  Add Subject:
+  <select id="add-subject-select"></select>
+</label>
+
+<button id="add-subject-btn">Add Selected Subject</button>
+<button id="remove-class-btn" class="danger-btn">Remove Selected Subject</button>
+
 
       <div id="teacher-buttons" class="row">
       <button id="save-btn">Save Attendance</button>
       <button id="export-btn">Export as CSV</button>
       <button id="toggle-auto-update">🔄 Auto-Update: ON</button>
     </div>
+    
     </div>
+    <div class="row" style="justify-content: space-between; align-items: center; ">
+      <!-- <h2 style="margin: 0;">Mark Attendance</h2> -->
+       <h2 style="margin: 0;">Quick Access:</h2>
+    </div>
+    <button onclick="window.location.href='students.html'" 
+          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">  Student Overview
+</button>
+
+ <button onclick="window.location.href='sem.html'" 
+          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
+    Class History
+  </button>
+  <button onclick="window.location.href='absent.html'" 
+          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
+    Absentee Report
+  </button>
+  <button onclick="window.location.href='chatbot.html'">
+  Help Chatbot
+</button>
       <div id="qr-box" class="hidden">
         <div id="qrcode"></div>
         <!-- <div>
@@ -566,6 +618,7 @@
       <button id="export-btn2">Export as CSV</button>
       <button id="toggle-auto-update">🔄 Auto-Update: ON</button>
     </div>
+    
   </div>
 </div>
 
@@ -692,81 +745,46 @@ const firebaseConfig = {
     'DM',
     'SE',
     'DBMS',
-    'CI',
-    'ES',
-    'BEFA',
-    'NODEJS',
-    'OS Lab',
-    'DBMS Lab',
-    'RTP','ASSIGNMENT'
+    'CI'
   ],
   'Tuesday': [
     'OS',
     'DM',
     'SE',
-    'DBMS',
-    'CI',
-    'ES',
-    'BEFA',
-    'NODEJS',
-    'OS Lab',
-    'DBMS Lab',
-    'RTP','ASSIGNMENT'
+    'DBMS'
   ],
   'Wednesday': [
-    'OS',
-    'DM',
-    'SE',
-    'DBMS',
-    'CI',
     'ES',
-    'BEFA',
-    'NODEJS',
-    'OS Lab',
-    'DBMS Lab',
-    'RTP','ASSIGNMENT'
+    'NODEJS','ASSIGNMENT'
   ],
   'Thursday': [
-    'OS',
-    'DM',
-    'SE',
-    'DBMS',
-    'CI',
-    'ES',
     'BEFA',
-    'NODEJS',
-    'OS Lab',
-    'DBMS Lab',
-    'RTP','ASSIGNMENT'
+    'OS Lab'
   ],
   'Friday': [
     'OS',
     'DM',
     'SE',
     'DBMS',
-    'CI',
-    'ES',
-    'BEFA',
-    'NODEJS',
-    'OS Lab',
-    'DBMS Lab',
-    'RTP','ASSIGNMENT'
+    'RTP'
   ],
   'Saturday':[
-    'OS',
-    'DM',
-    'SE',
-    'DBMS',
-    'CI',
-    'ES',
-    'BEFA',
-    'NODEJS',
-    'OS Lab',
-    'DBMS Lab',
-    'RTP','ASSIGNMENT'
   ]
 };
-
+const ALL_SUBJECTS = [
+  'OS',
+  'DM',
+  'SE',
+  'DBMS',
+  'CI',
+  'OS Lab',
+  'ES',
+  'NODEJS',
+  'ASSIGNMENT',
+  'BEFA',
+  'DBMS Lab',
+  'RTP'
+];
 
   /*************************************
    * DOM
@@ -893,7 +911,8 @@ try {
               processedData[student] = attendance;
             } else {
               // Convert non-array data to array format
-              processedData[student] = new Array((newData.subjects || []).length).fill(false);
+              processedData[student] = new Array((newData.subjects || []).length).fill(true);
+
             }
           }
           updateTableWithChanges({...newData, data: processedData});
@@ -947,6 +966,17 @@ try {
       currentDocListener = null;
     }
   }
+function populateAllSubjectsDropdown() {
+  const select = document.getElementById('add-subject-select');
+  select.innerHTML = '';
+
+  ALL_SUBJECTS.forEach(sub => {
+    const opt = document.createElement('option');
+    opt.value = sub;
+    opt.textContent = sub;
+    select.appendChild(opt);
+  });
+}
 
 function updateTableWithChanges(newData) {
   const activeSelect = getActiveSubjectSelect();
@@ -986,10 +1016,10 @@ const subjectIndex = parseInt(activeSelect.value, 10);
     startAutoUpdate();
   });
   
-  dateSelect.addEventListener('change', () => { 
-    populateSubjectSelect(); 
-    startAutoUpdate();
-  });
+ dateSelect.addEventListener('change', () => {
+  autoSelectDayFromDate(dateSelect.value);
+});
+
 
   // Start auto-update when saved record is selected
   savedDates.addEventListener('change', () => {
@@ -1075,6 +1105,8 @@ const subjectIndex = parseInt(activeSelect.value, 10);
   }
 
   function showApp() {
+    
+
     const viewerSubjectBlock = document.getElementById('viewer-subject-block');
 
 if (currentRole === 'viewer') {
@@ -1087,10 +1119,13 @@ if (currentRole === 'viewer') {
     attendanceSection.classList.remove('hidden');
 
     populateDayDropdown();
-    dateSelect.value = new Date().toISOString().split('T')[0];
-    buildTable(subjectsByDay['Monday']);
+    const today = new Date().toISOString().split('T')[0];
+dateSelect.value = today;
+autoSelectDayFromDate(today);
+  daySelect.disabled = true;
     loadSavedDates();
     populateSubjectSelect();
+      populateAllSubjectsDropdown();
 
     if (currentRole === 'viewer') {
       addClassSection.style.display = 'none';
@@ -1103,7 +1138,7 @@ if (currentRole === 'viewer') {
     } else {
       addClassSection.style.display = '';
       teacherButtons.style.display = '';
-      daySelect.disabled = false;
+     
       dateSelect.disabled = false;
       qrSessionBox.style.display = '';
       toggleAutoUpdateBtn.style.display = '';
@@ -1193,9 +1228,35 @@ if (currentRole === 'viewer') {
   /*************************************
    * Attendance table with Select All functionality
    *************************************/
-  addClassBtn.addEventListener('click', addClass);
+  document
+  .getElementById('add-subject-btn')
+  .addEventListener('click', addSelectedSubject);
+
   const removeClassBtn = document.getElementById('remove-class-btn');
 removeClassBtn.addEventListener('click', removeClass);
+function autoSelectDayFromDate(dateStr) {
+  if (!dateStr) return;
+
+  const days = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday'
+  ];
+
+  const dateObj = new Date(dateStr + "T00:00:00"); // avoid timezone issues
+  const dayName = days[dateObj.getDay()];
+
+  // Only set if day exists in timetable
+  if (subjectsByDay[dayName]) {
+    daySelect.value = dayName;
+    populateSubjectSelect();
+    startAutoUpdate();
+  }
+}
 
 function removeClass() {
   if (currentRole === 'viewer') return;
@@ -1310,13 +1371,14 @@ tableHeader.innerHTML = headerHTML;
     const row = document.createElement('tr');
     
     // Get attendance status for this specific subject
-    let isPresent = false;
-    if (existingData[student] && Array.isArray(existingData[student])) {
-      // Ensure the array has enough elements
-      if (subjectIndex < existingData[student].length) {
-        isPresent = existingData[student][subjectIndex];
-      }
-    }
+    let isPresent = true; // ✅ default PRESENT
+
+if (existingData[student] && Array.isArray(existingData[student])) {
+  if (subjectIndex < existingData[student].length) {
+    isPresent = existingData[student][subjectIndex];
+  }
+}
+
     
     const disabled = currentRole === 'viewer' ? 'disabled' : '';
     row.innerHTML = `
@@ -1456,6 +1518,7 @@ function processAttendanceData(data, subjects) {
   return processedData;
 }
 
+
 // 1. Modify the saveAttendance function to handle multiple subjects properly
 // 1. Modify the saveAttendance function to match the desired structure
 async function saveAttendance() {
@@ -1506,7 +1569,8 @@ async function saveAttendance() {
     
     // Initialize student data if it doesn't exist
     if (!existingData[student]) {
-      existingData[student] = new Array(allSubjects.length).fill(false);
+      existingData[student] = new Array(allSubjects.length).fill(true);
+
     }
     
     // Ensure the array has the correct length
@@ -1573,32 +1637,64 @@ async function saveAttendance() {
     alert('Failed to load saved records (check Firestore rules).');
   }
 }
+function addSelectedSubject() {
+  if (currentRole === 'viewer') return;
 
+  const day = daySelect.value;
+  const subject = document.getElementById('add-subject-select').value;
 
-  function addClass() {
-    if (currentRole === 'viewer') return;
-    const input = document.getElementById('new-class-name');
-    const newClass = (input.value || '').trim();
-    if (!newClass) { alert('Please enter a class name'); return; }
-
-    const day = daySelect.value;
-    const subjects = subjectsByDay[day];
-    if (subjects.includes(newClass)) { alert('This class already exists for today.'); return; }
-
-    const existingData = {};
-    document.querySelectorAll('#attendance-body tr').forEach(row => {
-      const student = row.cells[0].textContent;
-      existingData[student] = [];
-      for (let i = 1; i < row.cells.length; i++) {
-        existingData[student].push(row.cells[i].firstChild.checked);
-      }
-    });
-
-    subjects.push(newClass);
-    buildTable(subjects, existingData);
-    input.value = '';
-    populateSubjectSelect();
+  if (!subject) {
+    alert('Please select a subject');
+    return;
   }
+
+  const subjects = subjectsByDay[day];
+
+  if (subjects.includes(subject)) {
+    alert(`"${subject}" already exists for ${day}`);
+    return;
+  }
+
+  // Preserve existing attendance
+  const existingData = {};
+  document.querySelectorAll('#attendance-body tr').forEach(row => {
+    const student = row.cells[0].textContent;
+    existingData[student] = [];
+    for (let i = 1; i < row.cells.length; i++) {
+      existingData[student].push(row.cells[i].firstChild.checked);
+    }
+  });
+
+  subjects.push(subject);
+  buildTable(subjects, existingData);
+  populateSubjectSelect();
+}
+
+
+  // function addClass() {
+  //   if (currentRole === 'viewer') return;
+  //   const input = document.getElementById('new-class-name');
+  //   const newClass = (input.value || '').trim();
+  //   if (!newClass) { alert('Please enter a class name'); return; }
+
+  //   const day = daySelect.value;
+  //   const subjects = subjectsByDay[day];
+  //   if (subjects.includes(newClass)) { alert('This class already exists for today.'); return; }
+
+  //   const existingData = {};
+  //   document.querySelectorAll('#attendance-body tr').forEach(row => {
+  //     const student = row.cells[0].textContent;
+  //     existingData[student] = [];
+  //     for (let i = 1; i < row.cells.length; i++) {
+  //       existingData[student].push(row.cells[i].firstChild.checked);
+  //     }
+  //   });
+
+  //   subjects.push(newClass);
+  //   buildTable(subjects, existingData);
+  //   input.value = '';
+  //   populateSubjectSelect();
+  // }
 
 async function exportCSV() {
   if (currentRole !== 'teacher') {
@@ -1977,7 +2073,7 @@ async function exportCSV() {
 
     // Ensure subjects array is from timetable
     const subjects = subjectsByDay[day] || [];
-    const blankRow = subjects.map(() => false);
+    const blankRow = subjects.map(() => true);
 
     let data = {};
     if (attSnap.exists()) {
