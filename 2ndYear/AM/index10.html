@@ -449,7 +449,7 @@ select:disabled {
 </head>
 <body>
 <header style="display:flex; justify-content:space-between; align-items:center; padding:20px; background:#2c3e50; color:white;">
-  <h1 style="margin:0;">Attendance System For CSE(AM)</h1>
+  <h1 style="margin:0;">Attendance System For CSE(CORE)</h1>
   
 </header>
 
@@ -474,7 +474,7 @@ select:disabled {
     </div>   -->
     <div class="row">
       <button id="login-btn">Login</button>
-      <!-- <button id="forgot-btn" class="muted">Forgot password</button> -->
+      <button id="forgot-btn" class="muted">Forgot password</button>
     </div>
     <div id="login-feedback" style="min-height:1.25rem; margin-top:8px"></div>
     <div id="login-troubleshoot" class="notice" style="display:none;">
@@ -518,7 +518,7 @@ select:disabled {
        <h2 style="margin: 0;">Instructions to Mark Attendance:</h2>
     </div>
     
-    <p >Step1:  Select Day and Subject. <br>
+    <p >Step1: Select a Saved Record. If the required record is not found, Select Day, Date and Subject. <br>
       Step2: Start taking attendance by ticking the boxes. If the Required Subject is not found then add the subject.<br> 
       Step3(Important): Click "Save Attendance" to save the record.<br>     
     </p>
@@ -526,29 +526,31 @@ select:disabled {
       <!-- <div class="row">
         <strong>QR + Geolocation session (teacher)</strong>
       </div> -->
-      <div class="row" style="justify-content: space-between; align-items: center; ">
-      <!-- <h2 style="margin: 0;">Mark Attendance</h2> -->
-       <h2 style="margin: 0;">Session Controls:</h2>
-    </div>
       <div class="row">
-        
-    
-    
-        <label>Date: <input type="date" id="date-select"></label>
         <label>Select Day: <select id="day-select"></select></label>
-      
+      <label>Date: <input type="date" id="date-select"></label>
         <label>Subject: <select id="subject-select"></select></label>
-        
+        <button onclick="window.location.href='students.html'" 
+          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">  Student Attendance Overview
+</button>
+
+ <button onclick="window.location.href='sem.html'" 
+          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
+    Classes taken in the Semester
+  </button>
+  <button onclick="window.location.href='absent.html'" 
+          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
+    Check Absent Students
+  </button>
+  <button onclick="window.location.href='chatbot.html'">
+  🤖 Attendance Chatbot
+</button>
         <!-- <label>Radius (m): <input id="radius-input" type="number" min="5" max="200" step="1" value="35" /></label>
         <label>Expires in (min): <input id="expire-mins" type="number" min="1" max="15" step="1" value="3" /></label> -->
         <!-- <button id="set-class-here">Use my current location</button>
         <button id="start-qr-btn">Start QR Session</button>
         <button id="end-qr-btn" class="danger-btn" style="display:none;">End Session</button> -->
       </div>
-      <div class="row" style="justify-content: space-between; align-items: center; ">
-      <!-- <h2 style="margin: 0;">Mark Attendance</h2> -->
-       <h2 style="margin: 0;">Teacher Actions:</h2>
-    </div>
       <div id="add-class-section" class="row">
   <label>
   Add Subject:
@@ -564,27 +566,7 @@ select:disabled {
       <button id="export-btn">Export as CSV</button>
       <button id="toggle-auto-update">🔄 Auto-Update: ON</button>
     </div>
-    
     </div>
-    <div class="row" style="justify-content: space-between; align-items: center; ">
-      <!-- <h2 style="margin: 0;">Mark Attendance</h2> -->
-       <h2 style="margin: 0;">Quick Access:</h2>
-    </div>
-    <button onclick="window.location.href='students.html'" 
-          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">  Student Overview
-</button>
-
- <button onclick="window.location.href='sem.html'" 
-          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
-    Class History
-  </button>
-  <button onclick="window.location.href='absent.html'" 
-          style="padding:10px 18px; border:none; border-radius:8px; background-color:#3498db; color:white; cursor:pointer; font-weight:600; font-size:1rem;">
-    Absentee Report
-  </button>
-  <button onclick="window.location.href='chatbot.html'">
-  Help Chatbot
-</button>
       <div id="qr-box" class="hidden">
         <div id="qrcode"></div>
         <!-- <div>
@@ -618,7 +600,6 @@ select:disabled {
       <button id="export-btn2">Export as CSV</button>
       <button id="toggle-auto-update">🔄 Auto-Update: ON</button>
     </div>
-    
   </div>
 </div>
 
@@ -758,7 +739,7 @@ const ALL_SUBJECTS = [
    /*************************************
    * DOM
    *************************************/
-   const $ = id => document.getElementById(id);
+  const $ = id => document.getElementById(id);
 
   const loginSection = $("login-section");
   const attendanceSection = $("attendance-section");
