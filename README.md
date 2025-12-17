@@ -1,9 +1,9 @@
-https://webdevcrrao-del.github.io/College-Attendance/
-https://webdevcrrao-del.github.io/College-Attendance/mobileapp.html
-
 # 📘 College Attendance System
 
 A simple and effective **attendance management system** built with web technologies to help faculty and students manage attendance seamlessly for college classes.
+
+## Download the app
+https://webdevcrrao-del.github.io/College-Attendance/mobileapp.html
 
 ## 🚀 Features
 
