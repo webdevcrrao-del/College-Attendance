@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Attendance System For CSE(Core)</title>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+  <title>Attendance System For CSE(CORE)</title>
+   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -475,7 +474,7 @@ select:disabled {
     </div>   -->
     <div class="row">
       <button id="login-btn">Login</button>
-      <!-- <button id="forgot-btn" class="muted">Forgot password</button> -->
+      <button id="forgot-btn" class="muted">Forgot password</button>
     </div>
     <div id="login-feedback" style="min-height:1.25rem; margin-top:8px"></div>
     <div id="login-troubleshoot" class="notice" style="display:none;">
@@ -709,7 +708,7 @@ const ALL_SUBJECTS = [
   /*************************************
    * DOM
    *************************************/
-  const $ = id => document.getElementById(id);
+   const $ = id => document.getElementById(id);
 
   const loginSection = $("login-section");
   const attendanceSection = $("attendance-section");
